@@ -75,6 +75,9 @@ h1{font-family:var(--display);font-weight:400;font-size:clamp(34px,5.4vw,52px);l
   border:1px solid var(--rule);border-radius:5px;padding:4px 6px;color:var(--ink);
   font-variant-numeric:tabular-nums}
 .satbox.namebox input{width:130px;font-family:var(--body);font-size:13.5px}
+.settings-col{display:flex;flex-direction:column;gap:9px;align-items:flex-start}
+.quickbar{display:flex;gap:8px;flex-wrap:wrap}
+.quickbar .btn{padding:6px 12px;font-size:12.5px}
 
 /* ── spread (hero) ──────────────────────────────────────── */
 .spread{border-bottom:1px solid var(--rule);background:var(--paper)}
@@ -303,7 +306,7 @@ footer li{margin-bottom:4px}
   .wrap{max-width:none;padding-inline:14px}
   a{color:inherit;text-decoration:none}
 
-  .settings,.asof,.ledger-actions,.filebar,.filenote,.paste,.headnote,
+  .settings,.settings-col,.asof,.ledger-actions,.filebar,.filenote,.paste,.headnote,
   .screen-only,.standfirst,#example-notice,.row .kill{display:none!important}
   .print-only{display:block;font-family:var(--mono);font-size:9pt;color:var(--ink-3);
     letter-spacing:.04em;margin:8px 0 0}
@@ -359,6 +362,7 @@ footer li{margin-bottom:4px}
         Enter a transcript once and see what each published formula makes of it.</p>
       <p class="print-only" id="printed-on"></p>
     </div>
+    <div class="settings-col">
     <div class="settings">
       <div class="satbox namebox">
         <label for="student">Name</label>
@@ -372,6 +376,12 @@ footer li{margin-bottom:4px}
       <div class="satbox">
         <label for="sat">SAT</label>
         <input id="sat" type="number" min="400" max="1600" step="10" value="1450" inputmode="numeric">
+      </div>
+      </div>
+      <div class="quickbar">
+        <button class="btn" type="button" data-act="save">Save File</button>
+        <button class="btn" type="button" data-act="load">Load File</button>
+        <button class="btn quiet" type="button" data-act="clear">Clear all</button>
       </div>
     </div>
   </div>
@@ -414,13 +424,13 @@ footer li{margin-bottom:4px}
       <div class="ledger-actions">
         <button class="btn primary" id="add">+ Add course</button>
         <button class="btn" id="load-example">Reload example</button>
-        <button class="btn quiet" id="clear">Clear all</button>
+        <button class="btn quiet" type="button" data-act="clear">Clear all</button>
       </div>
 
       <div class="filebar">
         <span class="lbl">Transcript file</span>
-        <button class="btn" id="save-json">Save File</button>
-        <button class="btn" id="open-json">Load File</button>
+        <button class="btn" type="button" data-act="save">Save File</button>
+        <button class="btn" type="button" data-act="load">Load File</button>
         <button class="btn" id="print-page">Print</button>
         <button class="btn quiet" id="toggle-paste">Copy or paste JSON</button>
         <input type="file" id="file-input" accept=".json,application/json" hidden>
@@ -1138,11 +1148,11 @@ $("#load-example").addEventListener("click", () => {
   $("#student").value = state.name;
   note(""); redraw();
 });
-$("#clear").addEventListener("click", () => {
+function clearAll(){
   state.courses = []; state.name = ""; state.asOf = null; state.isExample = false; save();
   $("#student").value = "";
   note(""); redraw();
-});
+}
 
 $("#res-ca").addEventListener("click", () => setResident(true));
 $("#res-oos").addEventListener("click", () => setResident(false));
@@ -1220,7 +1230,7 @@ function showPaste(msg){
   if(msg) note(msg, true);
 }
 
-$("#save-json").addEventListener("click", async () => {
+async function saveFile(){
   const d = await downloadsReady;
   if(!d){
     if(!inViewer){
@@ -1239,7 +1249,7 @@ $("#save-json").addEventListener("click", async () => {
     else if(code === "rate_limited") note("A save prompt is already open — try again in a moment.", true);
     else showPaste("That file couldn't be offered here — copy the JSON below instead.");
   }
-});
+}
 
 /* Printing from inside the viewer's frame needs the host to allow it. The
    beforeprint event is the only honest signal that it worked.            */
@@ -1264,7 +1274,14 @@ function stampPrintDate(){
   $("#printed-on").textContent = (who ? who + " · " : "") + "recalculated " + when;
 }
 
-$("#open-json").addEventListener("click", () => $("#file-input").click());
+/* Save, load and clear appear twice — under the header fields and at the
+   foot of the ledger — so the buttons carry the action and one listener
+   serves both.                                                          */
+const ACTIONS = {save: saveFile, load: () => $("#file-input").click(), clear: clearAll};
+document.addEventListener("click", e => {
+  const b = e.target.closest && e.target.closest("[data-act]");
+  if(b && ACTIONS[b.dataset.act]) ACTIONS[b.dataset.act]();
+});
 $("#file-input").addEventListener("change", e => {
   const f = e.target.files && e.target.files[0];
   if(!f) return;
