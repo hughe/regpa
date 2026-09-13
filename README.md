@@ -9,6 +9,12 @@ transcript once and see what each published formula makes of it.
 One static HTML file and its fonts. No build step, no dependencies, no server, no
 analytics, and no third-party requests — everything you type stays in your browser.
 
+## A warning
+
+**This was vibe coded.** An AI wrote it, a human has tested it lightly, and it may or may
+not do what it claims. Don't rely on it for anything. Every formula card links to the
+office's own published rule — check any number that matters against that.
+
 ## What it computes
 
 Seventeen figures from the same coursework. Each is implemented from the office's own

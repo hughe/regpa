@@ -64,6 +64,9 @@ h1{font-family:var(--display);font-weight:400;font-size:clamp(34px,5.4vw,52px);l
 .privacy{margin:13px 0 0;font-size:13px;color:var(--ink-2);max-width:56ch;
   padding-left:11px;border-left:2px solid var(--seal)}
 .privacy strong{color:var(--ink);font-weight:600}
+.disclaimer{margin:11px 0 0;font-size:13px;color:var(--ink-2);max-width:56ch;
+  padding-left:11px;border-left:2px solid var(--brass)}
+.disclaimer strong{color:var(--brass);font-weight:600}
 .privacy em{font-style:normal;font-family:var(--mono);font-size:11.5px;color:var(--brass)}
 .settings{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .seg{display:flex;border:1px solid var(--rule);border-radius:7px;overflow:hidden;background:var(--surface-2)}
@@ -315,6 +318,8 @@ footer li{margin-bottom:4px}
   .screen-only,.standfirst,#example-notice,.row .kill{display:none!important}
   .print-only{display:block;font-family:var(--mono);font-size:9pt;color:var(--ink-3);
     letter-spacing:.04em;margin:8px 0 0}
+  .disclaimer{font-size:8.5pt;max-width:none;margin-top:9px;padding-left:8px;
+    border-left-width:1.5px}
 
   .masthead,.spread,footer{border-color:var(--rule)}
   .masthead .wrap{padding-block:0 10px;display:block}
@@ -369,6 +374,9 @@ footer li{margin-bottom:4px}
         no server, no analytics, no third-party requests — your transcript is held on this device
         and nowhere else. <em>Save File</em> keeps a copy on your own computer, and <em>Load
         File</em> picks it up again whenever you come back.</p>
+      <p class="disclaimer"><strong>This page was vibe coded.</strong> An AI wrote it, a human has
+        tested it lightly, and it may or may not do what it claims. Don't rely on it for anything —
+        check any number that matters against the source linked on its card.</p>
       <p class="print-only" id="printed-on"></p>
     </div>
     <div class="settings-col">
