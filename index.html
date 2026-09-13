@@ -357,7 +357,7 @@ footer li{margin-bottom:4px}
 <header class="masthead">
   <div class="wrap">
     <div>
-      <div class="eyebrow">One transcript · fifteen formulas</div>
+      <div class="eyebrow">One transcript · sixteen formulas</div>
       <h1>The Recalculation Desk</h1>
       <p class="standfirst">Admissions offices rarely use the GPA printed on your transcript. They
         rebuild it — dropping courses, stripping your school's weighting, and adding their own.
@@ -635,7 +635,18 @@ function coreUnweighted(cs){
   return done(t,4);
 }
 
-/* Baseline 3 — a common high-school weighting; every school's differs. */
+/* Baseline 3 — the same core, with ninth grade set aside. */
+function coreNoFreshman(cs){
+  const t=T();
+  for(const c of cs){
+    if(c.year===9){ drop(t,c,"9th grade"); continue; }
+    if(!core5(c)){ drop(t,c,"not core"); continue; }
+    add(t,c,flat(pm,0));
+  }
+  return done(t,4);
+}
+
+/* Baseline 4 — a common high-school weighting; every school's differs. */
 function schoolWeighted(cs){
   const t=T();
   for(const c of cs){
@@ -822,6 +833,22 @@ const MODELS = [
        "descriptions in circulation trace back to a single second-hand sentence. Read this as a "+
        "useful lens, not as any particular college's arithmetic.</p>" },
 
+{ group:"Baselines", id:"core_no_frosh", name:"Core unweighted, no freshman year",
+  sub:"Five academic areas · 10th–12th · no rigour bonus",
+  run:coreNoFreshman,
+  rule:"<p>The same academic core on the same flat 4.0 scale, with ninth grade set aside. Freshman "+
+       "marks are the ones most likely to show a fourteen-year-old still finding their feet, and a "+
+       "transcript can read very differently once they come out.</p>"+
+       "<p><strong>This one is rumour, and worth holding loosely.</strong> A number of selective "+
+       "private colleges are said to discount or ignore freshman year when they rebuild a GPA. It "+
+       "is persistent admissions folklore — repeated by counsellors and consultants, and matching "+
+       "the shape described for Emory's internal index — but no college on that list publishes a "+
+       "formula saying so.</p>"+
+       "<p>What <em>is</em> on the record is narrower, and sits two groups below: UC and Cal State "+
+       "exclude ninth grade outright, in writing. Everything else is inference.</p>"+
+       "<p>The gap between this figure and the plain core unweighted above it answers the question "+
+       "the rumour is really about: how much of your number is ninth grade?</p>" },
+
 { group:"Baselines", id:"school", name:"Typical school weighting",
   sub:"Every course · +1.0 advanced, +0.5 honours",
   run:schoolWeighted,
@@ -987,7 +1014,7 @@ const MODELS = [
 /* Which grade years each formula's window covers — what makes a partial
    transcript provisional, or in UC's case not yet a GPA at all.          */
 const WINDOW = {
-  unweighted:[9,12], core_unweighted:[9,12], school:[9,12],
+  unweighted:[9,12], core_unweighted:[9,12], core_no_frosh:[10,12], school:[9,12],
   uc_capped:[10,11], uc_uncapped:[10,11], uc_unweighted:[10,11],
   csu:[10,12], uga:[9,12], gatech:[9,12], hope:[9,12],
   uf:[9,12], ucf:[9,12], bf:[9,12], ncaa:[9,12], ai:[9,12]

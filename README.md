@@ -11,13 +11,14 @@ analytics, and no third-party requests — everything you type stays in your bro
 
 ## What it computes
 
-Fifteen figures from the same coursework. Each is implemented from the office's own
+Sixteen figures from the same coursework. Each is implemented from the office's own
 published description, linked on its card in the app.
 
 | Formula | Rule |
 |---|---|
 | Unweighted 4.00 | Every course, plus/minus counted. The floor to measure the rest against. |
 | Core unweighted | Five academic areas on a flat 4.0 scale, no rigor bonus. The shape attributed to many selective privates — no college publishes it, so it carries no source. |
+| Core unweighted, no freshman year | The same core over 10th–12th. Rumoured of several selective privates; nobody publishes it. The gap from the row above is what 9th grade is worth. |
 | Typical school weighting | Every course, +1.0 advanced / +0.5 honors. Shown for contrast — no authority behind it. |
 | [UC](https://admission.universityofcalifornia.edu/admission-requirements/first-year-requirements/gpa-requirement.html) capped weighted | a–g only, 10th–11th only, +1 per honors **semester**, capped at 8 with at most 4 from 10th grade. |
 | UC fully weighted | Same courses, cap lifted. |
