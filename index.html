@@ -365,11 +365,12 @@ footer li{margin-bottom:4px}
 <header class="masthead">
   <div class="wrap">
     <div>
-      <div class="eyebrow">One transcript · seventeen formulas</div>
+      <div class="eyebrow">One transcript · eighteen formulas</div>
       <h1>The Recalculation Desk</h1>
-      <p class="standfirst">Admissions offices rarely use the GPA printed on your transcript. They
-        rebuild it — dropping courses, stripping your school's weighting, and adding their own.
-        Enter a transcript once and see what each published formula makes of it.</p>
+      <p class="standfirst">College admissions offices rarely use the GPA printed on your high
+        school transcript. They rebuild it — dropping courses, stripping your school's weighting,
+        and adding their own. Enter a transcript once and see what each published formula makes of
+        it.</p>
       <p class="privacy"><strong>Nothing you type here leaves your browser.</strong> No account,
         no server, no analytics, no third-party requests — your transcript is held on this device
         and nowhere else. <em>Save File</em> keeps a copy on your own computer, and <em>Load
@@ -956,6 +957,25 @@ const MODELS = [
        "<p>Campuses apply local supplementary criteria on top, so treat this as the system-wide base.</p>",
   src:["The CSU — Eligibility index","https://www.calstate.edu/apply/eligibility-index"] },
 
+{ group:"Georgia", id:"usg_fi", name:"USG Freshman Index",
+  sub:"Grades and a test score folded into one number",
+  kind:"index", compute:freshmanIndex, needs:"needs core GPA + SAT",
+  scale:{min:350, max:3625},
+  rule:"<p>Not a GPA. The University System of Georgia applies a single admission index across its "+
+       "institutions, combining grades with a test score:</p>"+
+       "<p class=\"src\">FI = 500 × GPA + 1.06 × (SAT EBRW + Math) − 74<br>"+
+       "FI = 500 × GPA + (ACT composite × 42) + 88</p>"+
+       "<ul><li><strong>USG publishes the formula but not which GPA goes into it.</strong> This "+
+       "card feeds it the <em>core unweighted</em> figure from the Baselines group — the five "+
+       "academic areas on a flat 4.0 scale, the closest match to the college-preparatory "+
+       "curriculum USG requires. A different GPA moves the index by hundreds of points, so read "+
+       "the number as indicative rather than as the one an office would compute.</li>"+
+       "<li>Every USG institution sets its own minimum, and the selective ones sit far above the "+
+       "floor, so there is no single system-wide threshold to mark on the scale.</li></ul>"+
+       "<p>UGA and Georgia Tech are USG institutions: their own recalculations, in the cards below, "+
+       "sit alongside this rather than instead of it.</p>",
+  src:["USG — Freshman Index requirements","https://www.usg.edu/student-affairs/prospective-students/freshman-index-requirements/"] },
+
 { group:"Georgia", id:"uga", name:"University of Georgia",
   sub:"Five core areas · all years · +1.0 AP and IB",
   run:uga, benchmark:[4.05,4.33],
@@ -1072,7 +1092,7 @@ const MODELS = [
 
 { group:"Other published formulas", id:"ai", name:"Ivy Academic Index",
   sub:"Reconstructed, not published", unverified:true,
-  kind:"index",
+  kind:"index", compute:academicIndex, needs:"needs GPA + SAT", scale:{min:60, max:240, mark:176},
   rule:"<p>The Ivy League's internal screen, used above all to certify that recruited athletes sit "+
        "within range of the ordinary admitted class. It is <strong>not a published formula</strong> — "+
        "what circulates is reconstructed from league documents and from what admissions officers have "+
@@ -1093,7 +1113,8 @@ const WINDOW = {
   unweighted:[9,12], core_unweighted:[9,12], core_no_frosh:[10,12], school:[9,12],
   uc_capped:[10,11], uc_uncapped:[10,11], uc_unweighted:[10,11],
   csu:[10,12], uga:[9,12], gatech:[9,12], hope:[9,12],
-  uf:[9,12], ucf:[9,12], bf:[9,12], tops:[9,12], ncaa:[9,12], ai:[9,12]
+  uf:[9,12], ucf:[9,12], bf:[9,12], tops:[9,12], ncaa:[9,12],
+  usg_fi:[9,12], ai:[9,12]
 };
 
 /* ── state ──────────────────────────────────────────────────────────────── */
@@ -1484,11 +1505,22 @@ const SCALE = 5;                                  // every rail runs 0–5
 const pct = v => Math.max(0, Math.min(100, v/SCALE*100));
 const fmt = (v,d) => v===null||v===undefined ? "—" : v.toFixed(d===undefined?2:d);
 
+/* An index is not a GPA: it folds grades and a test score into one number
+   on its own scale, so each index model carries that scale and its own
+   arithmetic.                                                            */
 function academicIndex(cs, sat){
   const u = unweighted(cs);
-  if(u.gpa===null || !sat) return null;
+  if(u.gpa === null || !sat) return null;
   const cgs = u.gpa/4*80;
-  return {ai: Math.round(cgs + 2*(sat/20)), cgs};
+  return {v: Math.round(cgs + 2*(sat/20)),
+          note: "converted GPA score " + fmt(cgs,1) + " of 80"};
+}
+
+function freshmanIndex(cs, sat){
+  const c = coreUnweighted(cs);
+  if(c.gpa === null || !sat) return null;
+  return {v: Math.round(500*c.gpa + 1.06*sat - 74),
+          note: "core GPA " + fmt(c.gpa) + " · SAT " + sat};
 }
 
 /* One model's value at the close of every year we have grades for, up to
@@ -1498,8 +1530,8 @@ function series(m, opts){
   for(const y of yearsPresent()){
     if(y > cut) break;
     const cs = through(y);
-    const r = m.kind === "index" ? academicIndex(cs, state.sat) : (cs.length ? m.run(cs, opts) : null);
-    const v = !r ? null : (m.kind === "index" ? r.ai : r.gpa);
+    const r = m.kind === "index" ? m.compute(cs, state.sat) : (cs.length ? m.run(cs, opts) : null);
+    const v = !r ? null : (m.kind === "index" ? r.v : r.gpa);
     if(v !== null && v !== undefined) pts.push({year:y, v, r});
   }
   return pts;
@@ -1615,14 +1647,16 @@ function cardHTML(m, pts){
   let figure, rail = "", stats = "";
 
   if(m.kind === "index"){
-    figure = r ? '<div class="figure tnum">'+r.ai+'<span class="of">of 240</span></div>'
-               : '<div class="figure tnum">—<span class="of">needs GPA + SAT</span></div>';
+    const sc = m.scale, span = sc.max - sc.min;
+    const at = x => Math.max(0, Math.min(100, (x - sc.min)/span*100));
+    figure = r ? '<div class="figure tnum">'+r.v+'<span class="of">of '+sc.max+"</span></div>"
+               : '<div class="figure tnum">—<span class="of">'+esc(m.needs)+"</span></div>";
     if(r){
-      const p = Math.max(0, Math.min(100, (r.ai-60)/180*100));
-      rail = '<div class="card-rail"><div class="fill" style="width:'+p.toFixed(1)+'%"></div>'+
-             '<div class="four" style="left:'+((176-60)/180*100).toFixed(1)+'%"></div></div>';
-      stats = '<div class="stats"><span>converted GPA score '+fmt(r.cgs,1)+" of 80</span>"+
-              '<span class="b">scale 60–240</span>'+deltaText(pts)+"</div>";
+      rail = '<div class="card-rail"><div class="fill" style="width:'+at(r.v).toFixed(1)+'%"></div>'+
+             (sc.mark == null ? ""
+               : '<div class="four" style="left:'+at(sc.mark).toFixed(1)+'%"></div>')+"</div>";
+      stats = '<div class="stats"><span>'+esc(r.note)+"</span>"+
+              '<span class="b">scale '+sc.min+"–"+sc.max+"</span>"+deltaText(pts)+"</div>";
     }
   } else if(!r){
     const w = WINDOW[m.id] || [9,12];

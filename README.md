@@ -1,8 +1,8 @@
 # ReGPA — The Recalculation Desk
 
-Admissions offices rarely use the GPA printed on your transcript. They rebuild it —
-dropping courses, stripping your school's weighting, and adding their own. Enter a
-transcript once and see what each published formula makes of it.
+College admissions offices rarely use the GPA printed on your high school transcript. They
+rebuild it — dropping courses, stripping your school's weighting, and adding their own.
+Enter a transcript once and see what each published formula makes of it.
 
 **Live:** https://hughe.github.io/regpa/
 
@@ -17,7 +17,7 @@ office's own published rule — check any number that matters against that.
 
 ## What it computes
 
-Seventeen figures from the same coursework. Each is implemented from the office's own
+Eighteen figures from the same coursework. Each is implemented from the office's own
 published description, linked on its card in the app.
 
 | Formula | Rule |
@@ -30,6 +30,7 @@ published description, linked on its card in the app.
 | UC fully weighted | Same courses, cap lifted. |
 | UC unweighted | Same courses, no honors points. |
 | [Cal State](https://www.calstate.edu/apply/eligibility-index) | a–g, 10th–**12th**, 8 honors semesters with at most **2** from 10th. |
+| [USG Freshman Index](https://www.usg.edu/student-affairs/prospective-students/freshman-index-requirements/) | Not a GPA: `500 × GPA + 1.06 × SAT − 74`, system-wide. USG publishes the formula but not which GPA feeds it — this page uses core unweighted and says so. |
 | [University of Georgia](https://admissions.uga.edu/admissions/first-year/first-year-admission-criteria/) | Five core areas, all years, **+1.0 for AP and IB only** — nothing for honors or dual enrollment. |
 | [Georgia Tech](https://admission.gatech.edu/first-year/academic-preparation) | Core only, +0.5 for AP, IB, dual enrollment, A-Levels. |
 | [HOPE / Zell Miller](https://www.gafutures.org/hope-state-aid-programs/hope-zell-miller-scholarships/hope-scholarship/understanding-the-high-school-hope-gpa/) | Core 9th–12th, school weighting stripped, +0.5 for AP/IB/DE — but nothing above 4.0, so only B and below can gain. |
