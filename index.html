@@ -381,6 +381,7 @@ footer li{margin-bottom:4px}
       <div class="quickbar">
         <button class="btn" type="button" data-act="save">Save File</button>
         <button class="btn" type="button" data-act="load">Load File</button>
+        <button class="btn" type="button" data-act="print">Print</button>
         <button class="btn quiet" type="button" data-act="clear">Clear all</button>
       </div>
     </div>
@@ -431,7 +432,7 @@ footer li{margin-bottom:4px}
         <span class="lbl">Transcript file</span>
         <button class="btn" type="button" data-act="save">Save File</button>
         <button class="btn" type="button" data-act="load">Load File</button>
-        <button class="btn" id="print-page">Print</button>
+        <button class="btn" type="button" data-act="print">Print</button>
         <button class="btn quiet" id="toggle-paste">Copy or paste JSON</button>
         <input type="file" id="file-input" accept=".json,application/json" hidden>
       </div>
@@ -1256,7 +1257,7 @@ async function saveFile(){
 let printStarted = false;
 window.addEventListener("beforeprint", () => { printStarted = true; });
 
-$("#print-page").addEventListener("click", () => {
+function printPage(){
   printStarted = false;
   stampPrintDate();
   try{ window.print(); }catch(e){}
@@ -1265,7 +1266,7 @@ $("#print-page").addEventListener("click", () => {
       note("Printing is blocked inside this frame. Open the artifact in its own browser tab, "+
            "then print from there.", true);
   }, 800);
-});
+}
 
 function stampPrintDate(){
   const who = studentName();
@@ -1277,7 +1278,8 @@ function stampPrintDate(){
 /* Save, load and clear appear twice — under the header fields and at the
    foot of the ledger — so the buttons carry the action and one listener
    serves both.                                                          */
-const ACTIONS = {save: saveFile, load: () => $("#file-input").click(), clear: clearAll};
+const ACTIONS = {save: saveFile, load: () => $("#file-input").click(),
+                print: printPage, clear: clearAll};
 document.addEventListener("click", e => {
   const b = e.target.closest && e.target.closest("[data-act]");
   if(b && ACTIONS[b.dataset.act]) ACTIONS[b.dataset.act]();
