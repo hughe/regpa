@@ -281,6 +281,9 @@ footer li{margin-bottom:4px}
 .delta{color:var(--ink-3)}
 .delta.up{color:var(--seal)}
 .delta.down{color:var(--brass)}
+.unver{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:10px;
+  letter-spacing:.05em;color:var(--ink-2);background:var(--sunk);
+  border:1px dashed var(--rule);border-radius:4px;padding:2px 6px;margin-top:6px;margin-right:5px}
 .prov{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:10px;
   letter-spacing:.05em;color:var(--brass);background:var(--brass-soft);
   border:1px solid var(--brass-line);border-radius:4px;padding:2px 6px;margin-top:6px}
@@ -357,7 +360,7 @@ footer li{margin-bottom:4px}
 <header class="masthead">
   <div class="wrap">
     <div>
-      <div class="eyebrow">One transcript · sixteen formulas</div>
+      <div class="eyebrow">One transcript · seventeen formulas</div>
       <h1>The Recalculation Desk</h1>
       <p class="standfirst">Admissions offices rarely use the GPA printed on your transcript. They
         rebuild it — dropping courses, stripping your school's weighting, and adding their own.
@@ -480,6 +483,27 @@ footer li{margin-bottom:4px}
           all. Highly selective private colleges mostly do that last thing.</p>
       </div>
       <div>
+        <h4>Looked for, not modelled</h4>
+        <p>Other formulas that really are published, and why they are not here:</p>
+        <ul>
+          <li><strong>South Carolina's Uniform Grading Policy</strong> (LIFE, Palmetto Fellows) —
+            state-mandated, +0.5 honors and +1.0 AP, IB and dual credit. It runs on numeric grades
+            out of 100, not letters, so this page cannot feed it without inventing a conversion.</li>
+          <li><strong>Iowa's Regent Admission Index</strong> — published in full:
+            (2 × ACT) + (class rank percentile) + (20 × GPA) + (5 × years of core courses), with 245
+            earning automatic admission. Needs a test score, a rank and a course count this page
+            does not collect.</li>
+          <li><strong>The University System of Georgia's Freshman Index</strong> —
+            500 × GPA + 1.06 × (SAT EBRW + Math) − 74. USG publishes the formula but not which GPA
+            goes into it, and the choice changes the answer.</li>
+          <li><strong>Cal Poly's Multi-Criteria Admission</strong> — last published in 2013 and
+            withdrawn since. What circulates is reverse-engineered from admit patterns.</li>
+          <li><strong>Harvard's reader ratings</strong>, surfaced in the SFFA litigation — a 1-to-6
+            judgement per applicant rather than arithmetic, and the reading procedures were largely
+            redacted.</li>
+        </ul>
+      </div>
+      <div>
         <h4>Modelling choices</h4>
         <ul>
           <li>A row holds one or two semester grades. A year grade counts as two equal semesters;
@@ -489,6 +513,8 @@ footer li{margin-bottom:4px}
             discards them, as their published rules specify.</li>
           <li>Set <em>grades in hand</em> to the last year you have marks for. Everything recomputes
             on that slice, and each card carries its running value at every earlier year.</li>
+          <li>A card marked <em>★ unverified</em> reflects a practice attributed to colleges that
+            publish no formula. Every other card links to the office's own rule.</li>
           <li>A formula whose window has not closed is marked <em>provisional</em>. UC's window is
             10th–11th, so a GPA computed after 9th grade is not a UC GPA at all.</li>
           <li>Course-count requirements (UF's 16 academic units, Bright Futures' 16 credits, NCAA's
@@ -782,6 +808,27 @@ function brightFutures(cs){
   return done(t,4.5);
 }
 
+/* Louisiana TOPS — core curriculum on a 4.00 scale, except that AP, IB,
+   gifted, dual-enrolment and honours courses are graded out of 5.00 and
+   then rescaled back: points / 5 x 4. An A gains nothing; a B, C or D
+   gains proportionally.                                                  */
+const TOPS_FIVE = l => isAPIB(l) || l === "dual" || l === "honors";
+
+function tops(cs){
+  const t=T();
+  for(const c of cs){
+    if(!core5(c)){ drop(t,c,"not TOPS core"); continue; }
+    const five = TOPS_FIVE(c.level);
+    add(t, c, g => {
+      const base = whole(g);
+      if(!five) return {v: base, b: 0};
+      const v = (base === 0 ? 0 : base + 1) / 5 * 4;
+      return {v, b: v - base};
+    });
+  }
+  return done(t,4);
+}
+
 /* NCAA Division I — the best 16 core units, unweighted, no plus/minus.
    A semester grade is half a unit, so the pool is the best 32 of them.    */
 function ncaa(cs){
@@ -817,7 +864,7 @@ const MODELS = [
        "as <em>their</em> formula.</p>" },
 
 { group:"Baselines", id:"core_unweighted", name:"Core unweighted",
-  sub:"Five academic areas · no rigour bonus",
+  sub:"Five academic areas · no rigour bonus", unverified:true,
   run:coreUnweighted,
   rule:"<p>The academic core on a flat 4.0 scale — English, mathematics, science, social science "+
        "and foreign language — with nothing added for rigour anywhere. Electives, PE and health "+
@@ -834,7 +881,7 @@ const MODELS = [
        "useful lens, not as any particular college's arithmetic.</p>" },
 
 { group:"Baselines", id:"core_no_frosh", name:"Core unweighted, no freshman year",
-  sub:"Five academic areas · 10th–12th · no rigour bonus",
+  sub:"Five academic areas · 10th–12th · no rigour bonus", unverified:true,
   run:coreNoFreshman,
   rule:"<p>The same academic core on the same flat 4.0 scale, with ninth grade set aside. Freshman "+
        "marks are the ones most likely to show a fourteen-year-old still finding their feet, and a "+
@@ -978,6 +1025,27 @@ const MODELS = [
        "those are not modelled here.</p>",
   src:["Bright Futures — initial eligibility","https://www.floridastudentfinancialaidsg.org/SAPBFMAIN/SAPBFMAIN"] },
 
+{ group:"Louisiana", id:"tops", name:"TOPS core GPA",
+  sub:"Core curriculum · advanced courses rescaled, not bonused",
+  run:tops, benchmark:[2.5,3.5],
+  context:"Opportunity 2.50 · Performance 3.00 · Honors 3.50",
+  rule:"<p>TOPS is the <strong>Taylor Opportunity Program for Scholars</strong>, Louisiana's state "+
+       "scholarship: it pays tuition at the state's public colleges for residents who finish a set "+
+       "core curriculum at a high enough GPA, with a test score to match. The GPA is computed over "+
+       "that core curriculum on a 4.00 scale, and the weighting is unlike anything else on this "+
+       "page.</p>"+
+       "<p>AP, IB, gifted, dual-enrolment and honours courses are graded out of <strong>5.00</strong> "+
+       "— and then converted back to the 4.00 scale <em>proportionally</em>: points ÷ 5 × 4. So a C "+
+       "in an honours course is 3.00 ÷ 5 × 4 = <strong>2.40</strong>, which is the state's own "+
+       "worked example.</p>"+
+       "<ul><li>A — 5.00 rescales to 4.00. <strong>An A in an AP course is worth exactly an A in a "+
+       "regular one</strong>, same as Georgia's HOPE.</li>"+
+       "<li>B — 3.20. C — 2.40. D — 1.60. The lower the grade, the more the rigour is worth, and "+
+       "never as a flat half point.</li></ul>"+
+       "<p>Two rules here are not modelled: past 16.5 core hours only the best grade in each core "+
+       "category counts, and a repeated course is averaged across attempts.</p>",
+  src:["LOSFA — TOPS cumulative high school GPA","https://www.osfa.la.gov/schgrt6a37.htm"] },
+
 { group:"Other published formulas", id:"ncaa", name:"NCAA Division I core GPA",
   sub:"Best 16 core units · unweighted · no plus/minus",
   run:ncaa, benchmark:[2.3,2.3],
@@ -995,7 +1063,7 @@ const MODELS = [
   src:["NCAA — Division I initial eligibility","https://www.ncaa.org/eligibility-center/initial-eligibility-requirements/division-i/"] },
 
 { group:"Other published formulas", id:"ai", name:"Ivy Academic Index",
-  sub:"Reconstructed, not published",
+  sub:"Reconstructed, not published", unverified:true,
   kind:"index",
   rule:"<p>The Ivy League's internal screen, used above all to certify that recruited athletes sit "+
        "within range of the ordinary admitted class. It is <strong>not a published formula</strong> — "+
@@ -1017,7 +1085,7 @@ const WINDOW = {
   unweighted:[9,12], core_unweighted:[9,12], core_no_frosh:[10,12], school:[9,12],
   uc_capped:[10,11], uc_uncapped:[10,11], uc_unweighted:[10,11],
   csu:[10,12], uga:[9,12], gatech:[9,12], hope:[9,12],
-  uf:[9,12], ucf:[9,12], bf:[9,12], ncaa:[9,12], ai:[9,12]
+  uf:[9,12], ucf:[9,12], bf:[9,12], tops:[9,12], ncaa:[9,12], ai:[9,12]
 };
 
 /* ── state ──────────────────────────────────────────────────────────────── */
@@ -1583,6 +1651,7 @@ function cardHTML(m, pts){
   return '<article class="card"><button class="card-top" type="button" aria-expanded="false" '+
     'aria-controls="b-'+m.id+'"><div><div class="nm">'+esc(m.name)+"</div>"+
     '<div class="sub">'+esc(m.sub)+"</div>"+
+    (m.unverified ? '<div class="unver">\u2605 unverified</div>' : "")+
     (prov ? '<div class="prov">'+esc(prov)+"</div>" : "")+"</div>"+
     sparkSVG(pts, m.name, m.kind === "index" ? (v => String(v)) : undefined)+
     figure+rail+stats+"</button>"+

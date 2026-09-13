@@ -11,7 +11,7 @@ analytics, and no third-party requests — everything you type stays in your bro
 
 ## What it computes
 
-Sixteen figures from the same coursework. Each is implemented from the office's own
+Seventeen figures from the same coursework. Each is implemented from the office's own
 published description, linked on its card in the app.
 
 | Formula | Rule |
@@ -30,8 +30,11 @@ published description, linked on its card in the app.
 | [University of Florida](https://admissions.ufl.edu/apply/freshman/our-decision-process) | Core plus any AP/IB/AICE, +1.0 advanced / +0.5 honors and pre-. |
 | [UCF](https://www.ucf.edu/admissions/undergraduate/question/how-competitive-is-it-to-get-accepted-into-ucf/) | Academic core, same two tiers. |
 | Bright Futures | 16 core credits, a flat +0.5 per weighted year-long course. |
+| [TOPS](https://www.osfa.la.gov/schgrt6a37.htm) (Louisiana) | Core curriculum on a 4.0 scale, but advanced courses are graded out of 5 and rescaled proportionally — a C in honors is 2.40, an A gains nothing. |
 | [NCAA Division I](https://www.ncaa.org/eligibility-center/initial-eligibility-requirements/division-i/) | Best 16 core units, unweighted, no plus/minus. The test-score sliding scale was dropped in 2023. |
-| Ivy Academic Index | Reconstructed, **not a published formula**. Marked as such in the app. |
+| Ivy Academic Index | Reconstructed, **not a published formula**. Marked ★ unverified in the app. |
+
+Cards marked **★ unverified** reflect a practice attributed to colleges that publish no formula; every other card links to the office's own rule. The footer lists published formulas that were found but deliberately not modelled — South Carolina's Uniform Grading Policy, Iowa's Regent Admission Index, Georgia's Freshman Index, Cal Poly's MCA and Harvard's reader ratings — with the reason for each.
 
 The differences are not cosmetic. On the sample transcript the same coursework reads
 anywhere from **3.58 to 4.42** depending on who is holding it.
