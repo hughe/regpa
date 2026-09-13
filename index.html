@@ -1,0 +1,1591 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Enter a high-school transcript once and see what fourteen published admissions and scholarship GPA formulas make of it.">
+<title>ReGPA — The Recalculation Desk</title>
+<style>:root{color-scheme:light dark}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Public+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F1F2EE; --surface:#FAFBF8; --surface-2:#E8EAE3; --sunk:#E3E6DE;
+  --ink:#13211C; --ink-2:#4E5E56; --ink-3:#78877F;
+  --rule:#CFD6CD; --rule-soft:#DFE4DC;
+  --seal:#1E4D3C; --seal-ink:#FAFBF8; --seal-soft:#DCE8E1;
+  --brass:#8F6714; --brass-soft:#F0E4C8; --brass-line:#D8C088;
+  --drop:#8E9A93;
+  --shadow:0 1px 2px rgba(19,33,28,.06), 0 8px 24px -18px rgba(19,33,28,.4);
+  --display:"Instrument Serif",Georgia,"Times New Roman",serif;
+  --body:"Public Sans",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#0F1613; --surface:#161F1A; --surface-2:#1E2922; --sunk:#121A16;
+    --ink:#E9EFEA; --ink-2:#9DACA3; --ink-3:#7A8A81;
+    --rule:#2B3931; --rule-soft:#222E28;
+    --seal:#79C79C; --seal-ink:#0F1613; --seal-soft:#1B2E25;
+    --brass:#DCAE55; --brass-soft:#2B2417; --brass-line:#5A4823;
+    --drop:#66756D;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -18px rgba(0,0,0,.9);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0F1613; --surface:#161F1A; --surface-2:#1E2922; --sunk:#121A16;
+  --ink:#E9EFEA; --ink-2:#9DACA3; --ink-3:#7A8A81;
+  --rule:#2B3931; --rule-soft:#222E28;
+  --seal:#79C79C; --seal-ink:#0F1613; --seal-soft:#1B2E25;
+  --brass:#DCAE55; --brass-soft:#2B2417; --brass-line:#5A4823;
+  --drop:#66756D;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -18px rgba(0,0,0,.9);
+}
+
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--body);line-height:1.5;
+  -webkit-font-smoothing:antialiased;padding:0;margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:20px;padding-block:0}
+h1,h2,h3{text-wrap:balance;margin:0}
+a{color:var(--seal)}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--seal);outline-offset:2px;border-radius:3px}
+.mono{font-family:var(--mono)}
+.tnum{font-variant-numeric:tabular-nums}
+
+/* ── masthead ───────────────────────────────────────────── */
+header.masthead{border-bottom:1px solid var(--rule);background:var(--surface)}
+.masthead .wrap{padding-block:26px 22px;display:flex;gap:22px;align-items:flex-start;
+  justify-content:space-between;flex-wrap:wrap}
+.eyebrow{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--brass);margin-bottom:8px}
+h1{font-family:var(--display);font-weight:400;font-size:clamp(34px,5.4vw,52px);line-height:1.02;
+  letter-spacing:-.01em}
+.standfirst{color:var(--ink-2);font-size:15px;max-width:56ch;margin-top:10px}
+.settings{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.seg{display:flex;border:1px solid var(--rule);border-radius:7px;overflow:hidden;background:var(--surface-2)}
+.seg button{background:none;border:0;padding:7px 12px;font-size:12.5px;color:var(--ink-2);
+  font-family:var(--mono);letter-spacing:.02em}
+.seg button[aria-pressed="true"]{background:var(--seal);color:var(--seal-ink)}
+.satbox{display:flex;align-items:center;gap:7px;border:1px solid var(--rule);border-radius:7px;
+  background:var(--surface-2);padding:4px 6px 4px 11px}
+.satbox label{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+.satbox input{width:62px;font-family:var(--mono);font-size:13px;background:var(--surface);
+  border:1px solid var(--rule);border-radius:5px;padding:4px 6px;color:var(--ink);
+  font-variant-numeric:tabular-nums}
+.satbox.namebox input{width:130px;font-family:var(--body);font-size:13.5px}
+
+/* ── spread (hero) ──────────────────────────────────────── */
+.spread{border-bottom:1px solid var(--rule);background:var(--paper)}
+.spread .wrap{padding-block:26px 30px}
+.spread-top{display:flex;gap:18px 34px;align-items:baseline;flex-wrap:wrap;margin-bottom:20px}
+.spread-figure{font-family:var(--display);font-size:clamp(40px,7vw,64px);line-height:.95;
+  letter-spacing:-.015em;font-variant-numeric:tabular-nums}
+.spread-figure .dash{color:var(--brass);padding:0 .08em}
+.spread-note{color:var(--ink-2);font-size:14px;max-width:44ch}
+.axis{position:relative;height:88px;margin-top:6px}
+.axis-line{position:absolute;left:0;right:0;top:34px;height:1px;background:var(--rule)}
+.axis-grid{position:absolute;top:26px;bottom:20px;width:1px;background:var(--rule-soft)}
+.axis-grid.major{background:var(--brass-line);top:20px}
+.axis-label{position:absolute;top:0;transform:translateX(-50%);font-family:var(--mono);
+  font-size:10.5px;color:var(--ink-3);letter-spacing:.06em}
+/* the end labels tuck inside the rail rather than hanging off the page */
+.axis-label.edge-l{transform:translateX(-2px)}
+.axis-label.edge-r{transform:translateX(calc(-100% + 2px))}
+.axis-label.major{color:var(--brass)}
+.axis-band{position:absolute;top:28px;height:13px;background:var(--seal);opacity:.16;border-radius:2px}
+.pin{position:absolute;top:22px;width:2px;height:25px;background:var(--seal);border-radius:1px;
+  transform:translateX(-1px)}
+.pin.is-brass{background:var(--brass)}
+.pin-cap{position:absolute;top:52px;transform:translateX(-50%);font-family:var(--mono);font-size:10px;
+  color:var(--ink-3);white-space:nowrap;max-width:46vw;overflow:hidden;text-overflow:ellipsis}
+.pin-cap.lower{top:70px}
+.pin-cap::before{content:"";position:absolute;left:50%;top:-13px;width:1px;height:11px;
+  background:var(--rule)}
+
+/* ── main split ─────────────────────────────────────────── */
+main .wrap{padding-block:0 56px}
+.split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.02fr);gap:38px;
+  align-items:start;padding-top:30px}
+@media (max-width:940px){.split{grid-template-columns:minmax(0,1fr);gap:34px}}
+.colhead{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;
+  padding-bottom:10px;border-bottom:2px solid var(--ink);margin-bottom:2px}
+.colhead h2{font-family:var(--display);font-weight:400;font-size:25px;letter-spacing:-.005em}
+.colhead .meta{font-family:var(--mono);font-size:11px;color:var(--ink-3);letter-spacing:.05em}
+
+/* ── ledger ─────────────────────────────────────────────── */
+.notice{display:flex;gap:10px;align-items:flex-start;background:var(--brass-soft);
+  border:1px solid var(--brass-line);border-radius:8px;padding:10px 12px;margin:14px 0 0;
+  font-size:13px;color:var(--ink-2)}
+.notice strong{color:var(--brass);font-weight:600}
+.yearblock{margin-top:20px}
+.yearbar{display:flex;align-items:baseline;gap:10px;font-family:var(--mono);font-size:11px;
+  letter-spacing:.13em;text-transform:uppercase;color:var(--ink-3);
+  border-bottom:1px solid var(--rule);padding-bottom:6px;margin-bottom:4px}
+.yearbar .gr{color:var(--ink)}
+.yearbar .ucwin{color:var(--seal);letter-spacing:.06em;text-transform:none;font-size:10.5px}
+.row{display:grid;grid-template-columns:minmax(0,1fr) 28px;
+  grid-template-areas:"name kill" "sel sel";gap:3px 6px;padding:7px 0;
+  border-bottom:1px solid var(--rule-soft)}
+.row:last-child{border-bottom:0}
+.row .nm{grid-area:name}
+.row .kill{grid-area:kill;justify-self:end}
+.row .sels{grid-area:sel;display:grid;gap:5px;
+  grid-template-columns:minmax(0,1.25fr) minmax(0,1.15fr) 54px 66px 52px}
+@media (max-width:470px){
+  .row .sels{grid-template-columns:minmax(0,1.2fr) minmax(0,1.1fr) 48px 60px 46px;gap:4px}
+}
+.row input[type="text"],.row select{width:100%;background:transparent;border:1px solid transparent;
+  border-radius:5px;padding:5px 6px;color:var(--ink);font-family:var(--body);font-size:13.5px;
+  min-width:0}
+.row input[type="text"]{font-weight:500}
+.row select{font-family:var(--mono);font-size:11.5px;color:var(--ink-2);
+  appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--ink-3) 50%),
+    linear-gradient(135deg,var(--ink-3) 50%,transparent 50%);
+  background-position:right 9px top 12px,right 5px top 12px;background-size:4px 4px,4px 4px;
+  background-repeat:no-repeat;padding-right:16px}
+.row select.g{font-weight:600;color:var(--ink);text-align:center;padding-right:14px}
+.row select.g2{font-weight:500;color:var(--ink-2)}
+.row input:hover,.row select:hover{border-color:var(--rule)}
+.row input:focus,.row select:focus{border-color:var(--seal);background:var(--surface);outline:none}
+.row .kill{background:none;border:0;color:var(--ink-3);font-size:17px;line-height:1;padding:3px 6px;
+  border-radius:5px;opacity:.5}
+.row .kill:hover{opacity:1;color:var(--brass);background:var(--surface-2)}
+
+/* one header strip, aligned to the select row inside every course */
+.ledger-head{display:grid;gap:5px;margin-top:12px;padding-bottom:5px;
+  grid-template-columns:minmax(0,1.25fr) minmax(0,1.15fr) 54px 66px 52px;
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--ink-3);border-bottom:1px solid var(--rule)}
+.ledger-head span{padding-left:6px}
+.ledger-head .mid{text-align:center;padding-left:0}
+@media (max-width:470px){
+  .ledger-head{grid-template-columns:minmax(0,1.2fr) minmax(0,1.1fr) 48px 60px 46px;gap:4px}
+}
+.headnote{margin:16px 0 0;font-size:12.5px;color:var(--ink-2)}
+.headnote b{font-family:var(--mono);font-size:11.5px;font-weight:500;color:var(--brass)}
+.ledger-actions{display:flex;gap:8px;margin-top:18px;flex-wrap:wrap}
+.btn{background:var(--surface);border:1px solid var(--rule);border-radius:7px;padding:8px 14px;
+  font-size:13px;color:var(--ink);box-shadow:var(--shadow)}
+.btn:hover{border-color:var(--seal);color:var(--seal)}
+.btn.primary{background:var(--seal);color:var(--seal-ink);border-color:var(--seal)}
+.btn.primary:hover{color:var(--seal-ink);filter:brightness(1.08)}
+.btn.quiet{background:none;box-shadow:none;color:var(--ink-3)}
+.btn.quiet:hover{color:var(--brass);border-color:var(--brass-line)}
+
+/* ── results ────────────────────────────────────────────── */
+.groups{display:flex;flex-direction:column;gap:26px;margin-top:20px}
+.group > h3{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--brass);margin-bottom:9px}
+.cards{display:flex;flex-direction:column;gap:9px}
+.card{background:var(--surface);border:1px solid var(--rule);border-radius:9px;overflow:hidden;
+  box-shadow:var(--shadow)}
+.card-top{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:6px 14px;padding:12px 14px 11px;
+  align-items:start;width:100%;background:none;border:0;text-align:left}
+.card-top:hover .nm{color:var(--seal)}
+.card .nm{font-size:14.5px;font-weight:600;letter-spacing:-.005em}
+.card .sub{font-size:12px;color:var(--ink-3);margin-top:2px}
+.figure{font-family:var(--display);font-size:33px;line-height:1;font-variant-numeric:tabular-nums;
+  text-align:right;white-space:nowrap}
+.figure .of{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);letter-spacing:.05em;
+  display:block;margin-top:3px;font-variant-numeric:tabular-nums}
+.card-rail{grid-column:1/-1;position:relative;height:7px;background:var(--sunk);border-radius:4px;
+  margin-top:9px;overflow:hidden}
+.card-rail .fill{position:absolute;left:0;top:0;bottom:0;background:var(--seal);border-radius:4px}
+.card-rail .four{position:absolute;top:0;bottom:0;width:1px;background:var(--brass-line)}
+.card-rail .band{position:absolute;top:0;bottom:0;background:var(--brass);opacity:.34}
+.stats{grid-column:1/-1;display:flex;gap:6px 14px;flex-wrap:wrap;margin-top:9px;
+  font-family:var(--mono);font-size:11px;color:var(--ink-3);letter-spacing:.01em}
+.stats .b{color:var(--brass)}
+.stats .capped{color:var(--brass);border-bottom:1px dotted var(--brass-line)}
+.card-body{border-top:1px solid var(--rule-soft);background:var(--surface-2);padding:13px 14px 15px;
+  font-size:13px;color:var(--ink-2)}
+.card-body p{margin:0 0 9px}
+.card-body ul{margin:0 0 9px;padding-left:17px}
+.card-body li{margin-bottom:3px}
+.card-body .src{font-family:var(--mono);font-size:11px}
+.dropped{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.chip{font-family:var(--mono);font-size:10.5px;color:var(--drop);border:1px solid var(--rule);
+  border-radius:4px;padding:2px 6px;background:var(--surface);text-decoration:line-through;
+  text-decoration-color:var(--drop)}
+.chip.keep{color:var(--brass);border-color:var(--brass-line);background:var(--brass-soft);
+  text-decoration:none}
+.nogpa{color:var(--ink-3);font-family:var(--mono);font-size:13px}
+
+/* ── footer ─────────────────────────────────────────────── */
+footer{border-top:1px solid var(--rule);background:var(--surface);margin-top:0}
+footer .wrap{padding-block:26px 40px;font-size:13px;color:var(--ink-2)}
+footer h4{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--brass);margin:0 0 9px}
+footer p{margin:0 0 10px;max-width:74ch}
+footer .cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:26px 34px}
+footer ul{margin:0;padding-left:17px}
+footer li{margin-bottom:4px}
+
+/* ── as-of control ──────────────────────────────────────── */
+.asof{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:16px;
+  padding:11px 13px;background:var(--surface);border:1px solid var(--rule);border-radius:9px}
+.asof-label{font-family:var(--mono);font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--ink-3)}
+.asof .seg button{padding:6px 11px;font-size:12px}
+.asof .seg button[disabled]{opacity:.35;cursor:not-allowed}
+.asof .hint{font-size:12.5px;color:var(--ink-2);flex:1 1 220px;min-width:0}
+.asof-reading{margin:9px 0 0;font-family:var(--mono);font-size:11.5px;color:var(--brass);
+  letter-spacing:.02em}
+
+/* ── file panel ─────────────────────────────────────────── */
+.filebar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px;
+  padding-top:14px;border-top:1px solid var(--rule-soft)}
+.filebar .lbl{font-family:var(--mono);font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--ink-3);margin-right:2px}
+.filenote{font-size:12.5px;color:var(--ink-3);margin-top:8px}
+.filenote.bad{color:var(--brass)}
+.paste{margin-top:11px;background:var(--surface);border:1px solid var(--rule);border-radius:9px;
+  padding:12px 13px}
+.paste p{margin:0 0 8px;font-size:12.5px;color:var(--ink-2)}
+.paste textarea{width:100%;height:130px;font-family:var(--mono);font-size:11.5px;line-height:1.5;
+  background:var(--sunk);color:var(--ink);border:1px solid var(--rule);border-radius:7px;
+  padding:9px 10px;resize:vertical}
+.paste .acts{display:flex;gap:8px;margin-top:9px;flex-wrap:wrap}
+
+/* ── dimmed years beyond the cut-off ────────────────────── */
+.yearblock.beyond .row{opacity:.42}
+.yearblock.beyond .yearbar .gr{color:var(--ink-3)}
+.yearbar .cut{color:var(--brass);letter-spacing:.06em;text-transform:none;font-size:10.5px}
+
+/* ── running-GPA sparkline ──────────────────────────────── */
+.spark{width:80px;height:36px;overflow:visible;align-self:center}
+.spark .ln{fill:none;stroke:var(--seal);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.spark .base{stroke:var(--rule);stroke-width:1}
+.spark .dot{fill:var(--seal)}
+.spark .dot.past{fill:var(--rule)}
+.spark .now{fill:var(--seal);stroke:var(--surface);stroke-width:2}
+/* an invisible disc per point, far larger than the mark, so the pointer
+   does not have to find a 4px dot */
+.spark .hit{fill:transparent;pointer-events:all}
+.spark .pt:hover .mk{stroke:var(--ink);stroke-width:1.5}
+@media (max-width:560px){.spark{display:none}}
+.sparktip{position:fixed;z-index:50;pointer-events:none;background:var(--surface);
+  border:1px solid var(--rule);border-radius:7px;box-shadow:var(--shadow);padding:6px 10px}
+.sparktip b{display:block;font-family:var(--display);font-size:20px;line-height:1;
+  font-variant-numeric:tabular-nums;color:var(--ink)}
+.sparktip span{display:block;margin-top:4px;font-family:var(--mono);font-size:10.5px;
+  color:var(--ink-3);letter-spacing:.03em;white-space:nowrap}
+.sparktip em{font-style:normal;color:var(--brass)}
+.delta{color:var(--ink-3)}
+.delta.up{color:var(--seal)}
+.delta.down{color:var(--brass)}
+.prov{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:10px;
+  letter-spacing:.05em;color:var(--brass);background:var(--brass-soft);
+  border:1px solid var(--brass-line);border-radius:4px;padding:2px 6px;margin-top:6px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ── print ──────────────────────────────────────────────────────────────
+   One column, ink on white, every control flattened to the value it holds
+   so a course reads as a line of a transcript rather than a form.        */
+.print-only{display:none}
+@media print{
+  .sparktip{display:none!important}
+  :root,
+  :root:not([data-theme="light"]),
+  :root[data-theme="dark"]{
+    --paper:#fff; --surface:#fff; --surface-2:#fff; --sunk:#f0f0ee;
+    --ink:#111; --ink-2:#333; --ink-3:#5a5a5a;
+    --rule:#b4b4b4; --rule-soft:#dcdcdc;
+    --seal:#14402f; --seal-ink:#fff; --seal-soft:#eef3ef;
+    --brass:#6b4d0b; --brass-soft:#fff; --brass-line:#b09763;
+    --drop:#6a6a6a; --shadow:none;
+  }
+  @page{margin:14mm 12mm}
+  body{background:#fff;font-size:10pt;
+       -webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .wrap{max-width:none;padding-inline:14px}
+  a{color:inherit;text-decoration:none}
+
+  .settings,.asof,.ledger-actions,.filebar,.filenote,.paste,.headnote,
+  .screen-only,.standfirst,#example-notice,.row .kill{display:none!important}
+  .print-only{display:block;font-family:var(--mono);font-size:9pt;color:var(--ink-3);
+    letter-spacing:.04em;margin:8px 0 0}
+
+  .masthead,.spread,footer{border-color:var(--rule)}
+  .masthead .wrap{padding-block:0 10px;display:block}
+  h1{font-size:24pt}
+  .spread .wrap{padding-block:12px 14px}
+  .spread-top{margin-bottom:14px}
+  .spread-figure{font-size:26pt}
+  .spread-note{font-size:9.5pt;max-width:none}
+  .axis{height:62px}
+  .pin-cap.lower{top:64px}
+
+  .split{grid-template-columns:minmax(0,1fr);gap:20px;padding-top:16px}
+  main .wrap{padding-block:0 12px}
+  .colhead h2{font-size:15pt}
+
+  /* a course back on one line: name at the left, its fields at the right */
+  .row{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"name sel";
+    gap:0 10px;padding:2.5px 0;align-items:center;break-inside:avoid}
+  .row .sels{grid-template-columns:88px 80px 38px 60px 42px;gap:4px}
+  .row input[type="text"],.row select{border-color:transparent;background:none;
+    padding:1px 2px;font-size:9.5pt;color:var(--ink)}
+  .row select{background-image:none;padding-right:2px}
+  .row select.g{text-align:left}
+  .ledger-head{width:324px;margin-left:auto;margin-top:8px;gap:4px;
+    grid-template-columns:88px 80px 38px 60px 42px;font-size:8pt}
+  .ledger-head span,.ledger-head .mid{padding-left:2px;text-align:left}
+  .yearblock{break-inside:avoid;margin-top:12px}
+
+  .groups{gap:16px}
+  .card{break-inside:avoid;box-shadow:none;border-color:var(--rule)}
+  .card-top{padding:9px 10px 8px}
+  .card .nm{font-size:11pt}
+  .figure{font-size:19pt}
+  .card-body{border-top:1px solid var(--rule-soft)}
+  .prov{border-color:var(--brass-line)}
+
+  footer .wrap{padding-block:16px 0}
+}
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="wrap">
+    <div>
+      <div class="eyebrow">One transcript · fourteen formulas</div>
+      <h1>The Recalculation Desk</h1>
+      <p class="standfirst">Admissions offices rarely use the GPA printed on your transcript. They
+        rebuild it — dropping courses, stripping your school's weighting, and adding their own.
+        Enter a transcript once and see what each published formula makes of it.</p>
+      <p class="print-only" id="printed-on"></p>
+    </div>
+    <div class="settings">
+      <div class="satbox namebox">
+        <label for="student">Name</label>
+        <input id="student" type="text" maxlength="40" placeholder="whose transcript"
+               autocomplete="off" spellcheck="false">
+      </div>
+      <div class="seg" role="group" aria-label="Residency for UC and CSU honors weighting">
+        <button id="res-ca" type="button" aria-pressed="true">CA resident</button>
+        <button id="res-oos" type="button" aria-pressed="false">Non-resident</button>
+      </div>
+      <div class="satbox">
+        <label for="sat">SAT</label>
+        <input id="sat" type="number" min="400" max="1600" step="10" value="1450" inputmode="numeric">
+      </div>
+    </div>
+  </div>
+</header>
+
+<section class="spread">
+  <div class="wrap">
+    <div class="spread-top">
+      <div class="spread-figure tnum"><span id="lo">—</span><span class="dash">–</span><span id="hi">—</span></div>
+      <div class="spread-note">
+        <p style="margin:0"><span id="spread-lead">The same coursework, read by </span><span id="spread-count">13</span> different
+        offices. Each pin below is one formula on one shared 0–5 scale; the brass line is 4.00, the
+        ceiling an unweighted scale can reach.</p>
+        <p class="asof-reading" id="asof-reading"></p>
+      </div>
+    </div>
+    <div class="axis" id="axis"></div>
+  </div>
+</section>
+
+<main>
+  <div class="wrap split">
+    <section aria-labelledby="ledger-h">
+      <div class="colhead">
+        <h2 id="ledger-h">Transcript</h2>
+        <div class="meta" id="ledger-meta">—</div>
+      </div>
+      <div class="notice" id="example-notice">
+        <div><strong>Example transcript loaded.</strong> Edit any row, or clear it and enter your own.
+          The twelfth-grade rows carry first-semester marks only, the way a senior's transcript reads
+          when applications go in.</div>
+      </div>
+      <div class="asof" id="asof-box">
+        <span class="asof-label">Grades in hand</span>
+        <div class="seg" id="asof-seg" role="group" aria-label="Compute using grades through"></div>
+        <span class="hint" id="asof-hint"></span>
+      </div>
+
+      <div id="ledger"></div>
+      <div class="ledger-actions">
+        <button class="btn primary" id="add">+ Add course</button>
+        <button class="btn" id="load-example">Reload example</button>
+        <button class="btn quiet" id="clear">Clear all</button>
+      </div>
+
+      <div class="filebar">
+        <span class="lbl">Transcript file</span>
+        <button class="btn" id="save-json">Save File</button>
+        <button class="btn" id="open-json">Load File</button>
+        <button class="btn" id="print-page">Print</button>
+        <button class="btn quiet" id="toggle-paste">Copy or paste JSON</button>
+        <input type="file" id="file-input" accept=".json,application/json" hidden>
+      </div>
+      <p class="filenote" id="filenote"></p>
+      <div class="paste" id="paste-panel" hidden>
+        <p>The full state — name, courses, residency, SAT and cut-off. Copy it somewhere safe, or
+          paste a saved one in and import.</p>
+        <textarea id="paste-text" spellcheck="false" aria-label="Transcript JSON"></textarea>
+        <div class="acts">
+          <button class="btn primary" id="import-paste">Import this JSON</button>
+          <button class="btn" id="select-paste">Select all</button>
+          <button class="btn quiet" id="close-paste">Close</button>
+        </div>
+      </div>
+    </section>
+
+    <section aria-labelledby="results-h">
+      <div class="colhead">
+        <h2 id="results-h">What each office computes</h2>
+        <div class="meta screen-only">tap a card for the rule</div>
+      </div>
+      <div class="groups" id="results"></div>
+    </section>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="cols">
+      <div>
+        <h4>What this models, and what it can't</h4>
+        <p>Each formula is implemented from the office's own published description, linked on its
+          card. Where a rule is ambiguous in the source, the card says so rather than inventing a
+          number.</p>
+        <p>Three things no calculator can do for you: decide whether your school's "Honors" section
+          is <em>UC-certified</em> or your dual-enrollment course is <em>degree-level</em>; know
+          which of your courses sit on your state's approved list; or reproduce the reader who looks
+          at your transcript next to your school's profile and never reduces it to one number at
+          all. Highly selective private colleges mostly do that last thing.</p>
+      </div>
+      <div>
+        <h4>Modelling choices</h4>
+        <ul>
+          <li>A row holds one or two semester grades. A year grade counts as two equal semesters;
+            UC and CSU cap honours points per semester, so a year-long AP earns two of them and a
+            course with only an S1 mark earns one.</li>
+          <li>Plus and minus grades are used only in the two baseline rows. Every recalculation
+            here discards them, as their published rules specify.</li>
+          <li>Set <em>grades in hand</em> to the last year you have marks for. Everything recomputes
+            on that slice, and each card carries its running value at every earlier year.</li>
+          <li>A formula whose window has not closed is marked <em>provisional</em>. UC's window is
+            10th–11th, so a GPA computed after 9th grade is not a UC GPA at all.</li>
+          <li>Course-count requirements (UF's 16 academic units, Bright Futures' 16 credits, NCAA's
+            distribution rule) are not checked — only the GPA arithmetic is.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<div class="sparktip" id="sparktip" hidden aria-hidden="true"><b></b><span></span></div>
+
+<script>
+"use strict";
+
+/* ── vocabulary ─────────────────────────────────────────────────────────── */
+
+const SUBJECTS = {
+  english:  {label:"English",    ag:"b", core5:true},
+  math:     {label:"Math",       ag:"c", core5:true},
+  science:  {label:"Science",    ag:"d", core5:true},
+  social:   {label:"History",    ag:"a", core5:true},
+  language: {label:"Language",   ag:"e", core5:true},
+  cs:       {label:"Comp Sci",   ag:"g", core5:false},
+  arts:     {label:"Arts",       ag:"f", core5:false},
+  elective: {label:"Elective",   ag:"g", core5:false},
+  other:    {label:"PE / other", ag:null,core5:false}
+};
+
+const LEVELS = {
+  regular: {label:"Regular"},
+  honors:  {label:"Honors"},
+  pre_adv: {label:"Pre-AP/IB"},
+  ap:      {label:"AP"},
+  ib_hl:   {label:"IB HL"},
+  ib_sl:   {label:"IB SL"},
+  aice:    {label:"AICE/A-Lvl"},
+  dual:    {label:"Dual enr."}
+};
+
+const GRADES = ["A+","A","A-","B+","B","B-","C+","C","C-","D+","D","D-","F"];
+const PM = {"A+":4,"A":4,"A-":3.7,"B+":3.3,"B":3,"B-":2.7,"C+":2.3,"C":2,"C-":1.7,
+            "D+":1.3,"D":1,"D-":0.7,"F":0};
+const WHOLE = {A:4,B:3,C:2,D:1,F:0};
+
+const pm    = g => PM[g];
+const whole = g => WHOLE[g[0]];
+
+const isAPIB = l => l==="ap" || l==="ib_hl" || l==="ib_sl";
+const isAdv  = l => isAPIB(l) || l==="aice" || l==="dual";   // the +1.0 tier
+const isMid  = l => l==="honors" || l==="pre_adv";           // the +0.5 tier
+const core5  = c => SUBJECTS[c.subject].core5;
+const isAG   = c => SUBJECTS[c.subject].ag !== null;
+
+/* ── example transcript ─────────────────────────────────────────────────
+   [name, subject, level, S1 grade, grade level, S2]. S2 is a grade, "year"
+   (the one grade covers the whole year) or "none" (not graded yet). The
+   twelfth-grade rows carry first-semester marks only, which is what a
+   senior actually has in hand when applications go in.                    */
+
+const EXAMPLE = [
+  ["English I",              "english", "honors",  "A-", 9],
+  ["Geometry",               "math",    "honors",  "B+", 9],
+  ["Biology",                "science", "honors",  "A",  9],
+  ["World History",          "social",  "regular", "A-", 9],
+  ["Spanish II",             "language","regular", "A",  9],
+  ["Studio Art",             "arts",    "regular", "A",  9],
+  ["Physical Education",     "other",   "regular", "B+", 9],
+  ["English II",             "english", "honors",  "A",  10],
+  ["Algebra II",             "math",    "honors",  "B+", 10, "A-"],
+  ["Chemistry",              "science", "honors",  "B+", 10],
+  ["AP World History",       "social",  "ap",      "B",  10],
+  ["Spanish III",            "language","regular", "A-", 10],
+  ["AP Computer Sci. Prin.", "cs",      "ap",      "A",  10],
+  ["Health",                 "other",   "regular", "A",  10],
+  ["AP English Language",    "english", "ap",      "A-", 11],
+  ["Precalculus",            "math",    "honors",  "B+", 11],
+  ["AP Biology",             "science", "ap",      "B",  11, "A-"],
+  ["AP U.S. History",        "social",  "ap",      "A",  11],
+  ["Spanish IV",             "language","honors",  "A",  11],
+  ["Journalism",             "elective","regular", "B+", 11],
+  ["AP English Literature",  "english", "ap",      "A",  12, "none"],
+  ["AP Calculus AB",         "math",    "ap",      "B",  12, "none"],
+  ["AP Physics 1",           "science", "ap",      "B+", 12, "none"],
+  ["Economics (dual enr.)",  "social",  "dual",    "A",  12, "none"],
+  ["Ceramics",               "arts",    "regular", "A",  12, "none"]
+];
+
+const YEAR_TERM = "year", NO_TERM = "none";
+
+let uid = 0;
+const mkCourse = r => ({id:"c"+(++uid), name:r[0], subject:r[1], level:r[2],
+                        grade:r[3], year:r[4], g2: r[5] || YEAR_TERM});
+const exampleCourses = () => EXAMPLE.map(mkCourse);
+
+/* ── tallies ────────────────────────────────────────────────────────────
+   Every formula averages over SEMESTER grades, because that is the unit
+   UC and CSU cap honours points in. A row supplies one or two of them.   */
+
+function semesters(c){
+  if(c.g2 === NO_TERM) return [c.grade];
+  if(!c.g2 || c.g2 === YEAR_TERM || PM[c.g2] === undefined) return [c.grade, c.grade];
+  return [c.grade, c.g2];
+}
+const totalSemesters = cs => cs.reduce((n,c) => n + semesters(c).length, 0);
+
+function T(){ return {pts:0, sems:0, bonus:0, drops:[], keeps:[], flags:[]}; }
+
+/* valueOf(grade) -> {v, b}: that semester's quality points, and how much
+   of them is a rigour bonus.                                             */
+function add(t, c, valueOf){
+  let earned = false;
+  for(const g of semesters(c)){
+    const r = valueOf(g);
+    t.pts += r.v; t.bonus += (r.b || 0); t.sems += 1;
+    if(r.b) earned = true;
+  }
+  if(earned) t.keeps.push(c.name);
+}
+/* the common case: a fixed bonus on every semester of the course */
+const flat = (pointsOf, b) => g => ({v: pointsOf(g) + b, b});
+
+function drop(t, c, why){ t.drops.push({name:c.name, why}); }
+
+function done(t, max){
+  return {gpa: t.sems ? t.pts/t.sems : null, max, sems:t.sems, bonus:t.bonus,
+          drops:t.drops, keeps:t.keeps, flags:t.flags};
+}
+
+/* ── the formulas ───────────────────────────────────────────────────────── */
+
+/* Baseline 1 — the number most transcripts print. */
+function unweighted(cs){
+  const t=T(); for(const c of cs) add(t,c,flat(pm,0)); return done(t,4);
+}
+
+/* Baseline 2 — a common high-school weighting; every school's differs. */
+function schoolWeighted(cs){
+  const t=T();
+  for(const c of cs){
+    const b = isAdv(c.level) ? 1 : isMid(c.level) ? 0.5 : 0;
+    add(t,c,flat(pm,b));
+  }
+  return done(t,5);
+}
+
+/* University of California.
+   a–g only, grades 10–11, whole letters, +1 per honours SEMESTER — so a
+   course graded C in the autumn and D in the spring earns one point, not
+   two. mode: "capped" (the published UC GPA) | "uncapped" | "unweighted". */
+function uc(cs, opts, mode){
+  const t=T();
+  const eligible = l => opts.resident ? (isAdv(l)||l==="honors") : isAPIB(l);
+  let sem10=0, sem11=0;
+  for(const c of cs){
+    if(c.year!==10 && c.year!==11){ drop(t,c,c.year===9?"9th grade":"12th grade"); continue; }
+    if(!isAG(c)){ drop(t,c,"not a–g"); continue; }
+    add(t,c,flat(whole,0));
+    if(eligible(c.level)){
+      let n=0;
+      for(const g of semesters(c)) if(whole(g)>=2) n++;
+      if(n){ if(c.year===10) sem10 += n; else sem11 += n; t.keeps.push(c.name); }
+    }
+  }
+  let honors = 0;
+  if(mode!=="unweighted"){
+    if(mode==="capped"){
+      honors = Math.min(8, Math.min(4, sem10) + sem11);
+      const raw = sem10 + sem11;
+      if(raw>honors) t.flags.push(raw+" eligible semesters, "+honors+" allowed");
+    } else {
+      honors = sem10 + sem11;
+    }
+    t.pts += honors; t.bonus = honors;
+  }
+  return done(t, mode==="unweighted" ? 4 : 5);
+}
+
+/* California State University.
+   a–g, grades 10–12; up to 8 honours semesters, at most 2 from 10th grade;
+   a D earns no bonus.                                                     */
+function csu(cs, opts){
+  const t=T();
+  const eligible = l => isAdv(l) || l==="honors";
+  let sem10=0, rest=0;
+  for(const c of cs){
+    if(c.year===9){ drop(t,c,"9th grade"); continue; }
+    if(!isAG(c)){ drop(t,c,"not a–g"); continue; }
+    add(t,c,flat(whole,0));
+    if(eligible(c.level)){
+      let n=0;
+      for(const g of semesters(c)) if(whole(g)>=2) n++;
+      if(n){ if(c.year===10) sem10 += n; else rest += n; t.keeps.push(c.name); }
+    }
+  }
+  const honors = Math.min(8, Math.min(2, sem10) + rest);
+  const raw = sem10 + rest;
+  if(raw>honors) t.flags.push(raw+" eligible semesters, "+honors+" allowed");
+  t.pts += honors; t.bonus = honors;
+  return done(t,5);
+}
+
+/* University of Georgia. Five core areas (plus AP Art / Music Theory),
+   all four years, +1.0 for AP and IB only — no honours, no dual enrolment. */
+function uga(cs){
+  const t=T();
+  for(const c of cs){
+    const apArt = c.subject==="arts" && c.level==="ap";
+    if(!core5(c) && !apArt){ drop(t,c,"not core"); continue; }
+    add(t,c,flat(whole, isAPIB(c.level) ? 1 : 0));
+  }
+  return done(t,5);
+}
+
+/* Georgia Tech — core only, +0.5 for AP / IB / dual enrolment / A-Levels. */
+function gatech(cs){
+  const t=T();
+  for(const c of cs){
+    if(!core5(c)){ drop(t,c,"not core"); continue; }
+    add(t,c,flat(whole, isAdv(c.level) ? 0.5 : 0));
+  }
+  return done(t,4.5);
+}
+
+/* HOPE / Zell Miller. Core, 9–12, school weighting stripped, then +0.5 to
+   AP / IB / dual-enrolment grades — but no grade may exceed 4.0, so an A
+   in an AP course gains nothing.                                          */
+function hope(cs){
+  const t=T();
+  for(const c of cs){
+    if(!core5(c)){ drop(t,c,"not core"); continue; }
+    const b0 = (isAPIB(c.level) || c.level==="dual") ? 0.5 : 0;
+    add(t, c, g => { const base = whole(g), v = Math.min(4, base + b0);
+                     return {v, b: v - base}; });
+  }
+  return done(t,4);
+}
+
+/* University of Florida. Core, plus any AP/IB/AICE course whatever its
+   subject. +1.0 for AP / IB / AICE / core dual enrolment, +0.5 for
+   honours and the pre- courses.                                           */
+function uf(cs){
+  const t=T();
+  for(const c of cs){
+    const csProg = c.subject==="cs";
+    if(!core5(c) && !csProg && !(isAPIB(c.level)||c.level==="aice")){ drop(t,c,"not core"); continue; }
+    add(t,c,flat(whole, isAdv(c.level) ? 1 : isMid(c.level) ? 0.5 : 0));
+  }
+  return done(t,5);
+}
+
+/* UCF — academic core; +0.5 honours and pre- courses, +1.0 AP/IB/AICE/DE. */
+function ucf(cs){
+  const t=T();
+  for(const c of cs){
+    if(!core5(c)){ drop(t,c,"not core"); continue; }
+    add(t,c,flat(whole, isAdv(c.level) ? 1 : isMid(c.level) ? 0.5 : 0));
+  }
+  return done(t,5);
+}
+
+/* Bright Futures — core credits, +0.5 per year-long weighted course, which
+   here includes honours and the pre- courses as well as AP/IB/AICE/DE.    */
+function brightFutures(cs){
+  const t=T();
+  for(const c of cs){
+    if(!core5(c)){ drop(t,c,"not core"); continue; }
+    add(t,c,flat(whole, (isAdv(c.level)||isMid(c.level)) ? 0.5 : 0));
+  }
+  return done(t,4.5);
+}
+
+/* NCAA Division I — the best 16 core units, unweighted, no plus/minus.
+   A semester grade is half a unit, so the pool is the best 32 of them.    */
+function ncaa(cs){
+  const t=T();
+  const pool = [];
+  for(const c of cs){
+    if(!core5(c)){ drop(t,c,"not an NCAA core course"); continue; }
+    for(const g of semesters(c)) pool.push({c, g});
+  }
+  pool.sort((a,b) => whole(b.g) - whole(a.g));
+  const cut = new Set();
+  pool.forEach((e,i) => {
+    if(i < 32){ t.pts += whole(e.g); t.sems += 1; }
+    else if(!cut.has(e.c.id)){ cut.add(e.c.id); drop(t, e.c, "beyond the best 16"); }
+  });
+  const units = pool.length/2;
+  if(units < 16) t.flags.push("only "+(Number.isInteger(units)?units:units.toFixed(1))+" of 16 core units entered");
+  return done(t,4);
+}
+
+/* ── model table ────────────────────────────────────────────────────────── */
+
+const A = (href,text) => '<a href="'+href+'" target="_blank" rel="noopener">'+text+'</a>';
+
+const MODELS = [
+{ group:"Baselines", id:"unweighted", name:"Unweighted 4.00",
+  sub:"Every course · plus/minus counted",
+  run:unweighted,
+  rule:"<p>The plain average almost every transcript prints, and the number most selective private "+
+       "colleges look at before judging rigour separately. Every course counts, including PE and "+
+       "electives, and plus/minus grades move the value (A− = 3.7).</p>"+
+       "<p>It is here as the floor to measure the rest against — no admissions office publishes it "+
+       "as <em>their</em> formula.</p>" },
+
+{ group:"Baselines", id:"school", name:"Typical school weighting",
+  sub:"Every course · +1.0 advanced, +0.5 honours",
+  run:schoolWeighted,
+  rule:"<p>A common high-school weighting scheme, shown for contrast: every course counts, advanced "+
+       "courses gain a full point and honours half a point.</p>"+
+       "<p>This is the one number on the page with <strong>no authority behind it</strong>. Schools "+
+       "differ on every knob — which courses are weighted, by how much, whether electives count, "+
+       "whether the scale tops out at 5.0 or 6.0 — and that variation is the whole reason "+
+       "admissions offices recalculate.</p>" },
+
+{ group:"University of California & CSU", id:"uc_capped", name:"UC capped weighted GPA",
+  sub:"a–g · 10th–11th only · honours points capped at 8",
+  run:(cs,o)=>uc(cs,o,"capped"), benchmark:null,
+  context:"Minimum to apply: 3.00 resident · 3.40 non-resident",
+  rule:"<p>The published UC GPA. Only a–g approved courses count, only those taken between the "+
+       "summer after 9th grade and the summer after 11th, and plus/minus is discarded.</p>"+
+       "<ul><li>One extra point per semester of honours-level work, <strong>capped at 8 points</strong>, "+
+       "of which at most 4 may come from 10th grade.</li>"+
+       "<li>A D or F in an honours course forfeits the point.</li>"+
+       "<li>Californians earn the point for AP, IB HL and designated SL, UC-transferable college "+
+       "courses and UC-certified honours. <strong>Non-residents earn it for AP and IB only</strong> — "+
+       "your school calling a course \"Honors\" buys nothing.</li>"+
+       "<li>UC does not round.</li></ul>",
+  src:["UC Admissions — GPA requirement","https://admission.universityofcalifornia.edu/admission-requirements/first-year-requirements/gpa-requirement.html"] },
+
+{ group:"University of California & CSU", id:"uc_uncapped", name:"UC fully weighted GPA",
+  sub:"Same courses, every honours point kept",
+  run:(cs,o)=>uc(cs,o,"uncapped"),
+  rule:"<p>The same course set with the 8-point cap lifted. UC campuses see this figure alongside "+
+       "the capped one in comprehensive review, so a student who ran well past the cap is not "+
+       "invisible — but the capped number is the one the published minimums and the admitted-student "+
+       "profiles refer to.</p>" },
+
+{ group:"University of California & CSU", id:"uc_unweighted", name:"UC unweighted GPA",
+  sub:"Same courses, no honours points at all",
+  run:(cs,o)=>uc(cs,o,"unweighted"),
+  rule:"<p>The third figure UC computes from the same 10th–11th a–g set: no honours points anywhere. "+
+       "The gap between this and the capped GPA is exactly what your advanced coursework is worth "+
+       "to UC — at most 8 points spread across roughly 30–40 semester grades, which is why it rarely "+
+       "moves the number by more than about 0.25.</p>" },
+
+{ group:"University of California & CSU", id:"csu", name:"Cal State GPA",
+  sub:"a–g · 10th–12th · 8 honours semesters, 2 from 10th",
+  run:csu,
+  rule:"<p>Close to UC's but not identical, and the differences catch people:</p>"+
+       "<ul><li>Grades from <strong>10th through 12th</strong> grade count, not 10th–11th.</li>"+
+       "<li>Up to eight semesters of honours work earn a point, of which at most <strong>two</strong> "+
+       "may come from 10th grade — UC allows four.</li>"+
+       "<li>An A in an honours course is worth 5, a B 4, a C 3; a D is worth 1 and earns no bonus.</li></ul>"+
+       "<p>Campuses apply local supplementary criteria on top, so treat this as the system-wide base.</p>",
+  src:["The CSU — Eligibility index","https://www.calstate.edu/apply/eligibility-index"] },
+
+{ group:"Georgia", id:"uga", name:"University of Georgia",
+  sub:"Five core areas · all years · +1.0 AP and IB",
+  run:uga, benchmark:[4.05,4.33],
+  context:"Admitted mid-50%: 4.05 – 4.33",
+  rule:"<p>UGA recalculates every applicant from the transcript itself, using the five core areas — "+
+       "English, mathematics, science, social science, foreign language — plus AP Art and AP Music "+
+       "Theory. Grades convert on a 4.0 scale using whatever scale the school used at the time.</p>"+
+       "<ul><li><strong>A full letter grade (+1.0) is added to every AP and IB grade</strong>, unless "+
+       "the transcript already weighted that grade.</li>"+
+       "<li><strong>Nothing is added for honours or dual enrolment.</strong> UGA's stated reason: AP "+
+       "and IB are externally normed, while \"honors\" means something different at every school. "+
+       "Both still count toward the rigour judgement, just not the number.</li></ul>",
+  src:["UGA Admissions — first-year criteria","https://admissions.uga.edu/admissions/first-year/first-year-admission-criteria/"] },
+
+{ group:"Georgia", id:"gatech", name:"Georgia Tech",
+  sub:"Core only · +0.5 AP, IB, dual enrolment, A-Levels",
+  run:gatech,
+  rule:"<p>Core courses on a 4.0 scale with half a point added for AP, IB, dual enrolment and "+
+       "AS &amp; A-Levels.</p>"+
+       "<p>Worth knowing: Tech recalculates <em>when it has to</em> — where a school reports no GPA, "+
+       "or an applicant attended several schools. Otherwise it reads the school's own weighted GPA "+
+       "in the context of that school's profile.</p>",
+  src:["Georgia Tech — academic preparation","https://admission.gatech.edu/first-year/academic-preparation"] },
+
+{ group:"Georgia", id:"hope", name:"HOPE / Zell Miller GPA",
+  sub:"Core, 9th–12th · +0.5 advanced, nothing above 4.0",
+  run:hope, benchmark:[3.0,3.7],
+  context:"HOPE at 3.00 · Zell Miller at 3.70",
+  rule:"<p>Georgia's state scholarship formula, computed by the Georgia Student Finance Commission "+
+       "from the official transcript. It counts core courses across all four years and strips out "+
+       "the school's own weighting first.</p>"+
+       "<p>Then the quirk that decides the whole thing: half a point goes back onto AP, IB and "+
+       "degree-level dual-enrolment grades — but the scale stops at 4.0, so <strong>only B, C, D and "+
+       "F grades can gain from it</strong>. An A in an AP course is worth exactly what an A in a "+
+       "regular course is worth. Taking AP protects a B; it can never lift an A.</p>"+
+       "<p>No rounding, so 2.999 is not a 3.0.</p>",
+  src:["GAfutures — understanding the HOPE GPA","https://www.gafutures.org/hope-state-aid-programs/hope-zell-miller-scholarships/hope-scholarship/understanding-the-high-school-hope-gpa/"] },
+
+{ group:"Florida", id:"uf", name:"University of Florida",
+  sub:"Core + any AP/IB/AICE · +1.0 advanced, +0.5 honours",
+  run:uf, benchmark:[4.5,4.7],
+  context:"Admitted mid-50%: 4.5 – 4.7",
+  rule:"<p>UF builds a core weighted GPA on a 4.0 base: English, mathematics, natural science, "+
+       "social science, foreign language, and programming-based computer science — plus any AP, IB "+
+       "or AICE course whatever its subject.</p>"+
+       "<ul><li>+1.0 for AP, IB, AICE and academic-core dual enrolment, so an A is worth 5.0.</li>"+
+       "<li>+0.5 for honours, pre-AP, pre-IB and pre-AICE, so an A is worth 4.5.</li>"+
+       "<li>Electives, PE and driver's education simply disappear.</li></ul>"+
+       "<p>UF's published rule states no minimum grade for the bonus; some advisers report a C− floor "+
+       "in practice. This calculator applies the bonus to every passing grade.</p>",
+  src:["UF Admissions — our decision process","https://admissions.ufl.edu/apply/freshman/our-decision-process"] },
+
+{ group:"Florida", id:"ucf", name:"University of Central Florida",
+  sub:"Academic core · +1.0 advanced, +0.5 honours and pre-",
+  run:ucf, benchmark:[4.11,4.57],
+  context:"Admitted mid-50%: 4.11 – 4.57",
+  rule:"<p>The same shape as UF's, restricted to the academic core: English, mathematics, science, "+
+       "social studies and foreign language on a 4.0 scale.</p>"+
+       "<ul><li>Pre-AP, pre-IB, pre-AICE and honours: one extra half point.</li>"+
+       "<li>AP, IB, AICE and dual enrolment: one extra full point.</li></ul>"+
+       "<p>UCF publishes its middle-50% band as a recalculated figure, which is why it sits above "+
+       "4.0 and cannot be compared with an unweighted transcript GPA.</p>",
+  src:["UCF — how competitive is admission","https://www.ucf.edu/admissions/undergraduate/question/how-competitive-is-it-to-get-accepted-into-ucf/"] },
+
+{ group:"Florida", id:"bf", name:"Bright Futures",
+  sub:"16 core credits · +0.5 per weighted year course",
+  run:brightFutures, benchmark:[3.0,3.5],
+  context:"Florida Medallion 3.00 · Academic Scholars 3.50",
+  rule:"<p>Florida's state scholarship GPA: an unrounded, weighted average over the 16 college-"+
+       "preparatory credits, carried to two decimal places.</p>"+
+       "<p>Weighting is flat and generous — <strong>0.25 per semester course, 0.50 per year-long "+
+       "course</strong> — and it applies equally to honours, dual enrolment, AP, pre-IB, IB, "+
+       "pre-AICE and AICE. Unlike HOPE next door, an A in a weighted course really is worth 4.5.</p>"+
+       "<p>The award tiers also require service hours and, for Academic Scholars, a test score; "+
+       "those are not modelled here.</p>",
+  src:["Bright Futures — initial eligibility","https://www.floridastudentfinancialaidsg.org/SAPBFMAIN/SAPBFMAIN"] },
+
+{ group:"Other published formulas", id:"ncaa", name:"NCAA Division I core GPA",
+  sub:"Best 16 core units · unweighted · no plus/minus",
+  run:ncaa, benchmark:[2.3,2.3],
+  context:"Full qualifier at 2.300",
+  rule:"<p>The NCAA Eligibility Center recalculates from its own approved-course list for your high "+
+       "school, using your <strong>best grades in the required 16 core courses</strong> on a flat "+
+       "4.000 scale. Plus/minus is ignored and no rigour weighting exists — an A in AP Physics and an "+
+       "A in regular physics are the same 4.000.</p>"+
+       "<ul><li>2.300 makes you a full qualifier for Division I competition.</li>"+
+       "<li>Ten of the 16 core courses, seven of them in English, mathematics or science, must be "+
+       "finished before the seventh semester — and those ten lock, so a strong senior year cannot "+
+       "repair them.</li>"+
+       "<li>The old test-score sliding scale is gone: the NCAA dropped SAT/ACT requirements for "+
+       "initial eligibility permanently in 2023.</li></ul>",
+  src:["NCAA — Division I initial eligibility","https://www.ncaa.org/eligibility-center/initial-eligibility-requirements/division-i/"] },
+
+{ group:"Other published formulas", id:"ai", name:"Ivy Academic Index",
+  sub:"Reconstructed, not published",
+  kind:"index",
+  rule:"<p>The Ivy League's internal screen, used above all to certify that recruited athletes sit "+
+       "within range of the ordinary admitted class. It is <strong>not a published formula</strong> — "+
+       "what circulates is reconstructed from league documents and from what admissions officers have "+
+       "described, and the version here is the one advisers converge on:</p>"+
+       "<p class=\"src\">CGS = unweighted GPA ÷ 4.0 × 80 &nbsp;·&nbsp; AI = CGS + 2 × (SAT ÷ 20)</p>"+
+       "<ul><li>Three components of 80 each, so the scale runs 60–240.</li>"+
+       "<li>The original used a converted <em>class rank</em> score and the average of three SAT "+
+       "Subject Tests. Rank vanished from most transcripts and the Subject Tests were discontinued, "+
+       "so a converted GPA carries the first slot and the SAT is counted twice.</li>"+
+       "<li>Around 176 is the number usually quoted for the lowest band a recruit can occupy; ~215+ "+
+       "is typical of the unhooked admitted pool. Both are folklore, not policy.</li></ul>"+
+       "<p>Treat the output as a rough position, not a verdict.</p>" }
+];
+
+/* Which grade years each formula's window covers — what makes a partial
+   transcript provisional, or in UC's case not yet a GPA at all.          */
+const WINDOW = {
+  unweighted:[9,12], school:[9,12],
+  uc_capped:[10,11], uc_uncapped:[10,11], uc_unweighted:[10,11],
+  csu:[10,12], uga:[9,12], gatech:[9,12], hope:[9,12],
+  uf:[9,12], ucf:[9,12], bf:[9,12], ncaa:[9,12], ai:[9,12]
+};
+
+/* ── state ──────────────────────────────────────────────────────────────── */
+
+const KEY = "regpa-v1";
+let state = {courses: exampleCourses(), name:"Example", resident:true, sat:1450,
+             asOf:null, isExample:true};
+
+function save(){
+  try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){}
+}
+function loadSaved(){
+  try{
+    const raw = localStorage.getItem(KEY);
+    if(!raw) return;
+    const d = JSON.parse(raw);
+    if(!d || !Array.isArray(d.courses)) return;
+    d.courses = d.courses.filter(c => c && SUBJECTS[c.subject] && LEVELS[c.level] && PM[c.grade]!==undefined);
+    d.courses.forEach(c => { uid++; c.id = "c"+uid; });
+    state = Object.assign(state, d);
+  }catch(e){}
+}
+loadSaved();
+
+const $  = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
+
+/* ── the cut-off ────────────────────────────────────────────────────────── */
+
+const YEARS = [9,10,11,12];
+const ORD = {9:"9th", 10:"10th", 11:"11th", 12:"12th"};
+
+function yearsPresent(){
+  const seen = new Set(state.courses.map(c => c.year));
+  return YEARS.filter(y => seen.has(y));
+}
+function asOf(){
+  const ys = yearsPresent();
+  if(!ys.length) return 12;
+  const top = ys[ys.length-1];
+  return ys.indexOf(state.asOf) >= 0 ? state.asOf : top;
+}
+function through(y){ return state.courses.filter(c => c.year <= y); }
+
+/* "Priya" -> "Priya's"; "Lucas" -> "Lucas'". Display only — the filename
+   follows the plain [NAME]s- pattern.                                     */
+function possessive(n){ return n + (/s$/i.test(n) ? "\u2019" : "\u2019s"); }
+function studentName(){ return (state.name || "").trim(); }
+
+function renderName(){
+  const n = studentName();
+  $("#ledger-h").textContent = n ? possessive(n) + " transcript" : "Transcript";
+  $("#spread-lead").textContent = n ? possessive(n) + " coursework, read by "
+                                    : "The same coursework, read by ";
+}
+
+function renderAsOf(){
+  const ys = yearsPresent(), cut = asOf(), top = ys.length ? ys[ys.length-1] : 12;
+  $("#asof-seg").innerHTML = YEARS.map(y =>
+    '<button type="button" data-year="'+y+'" aria-pressed="'+(y===cut)+'"'+
+    (ys.indexOf(y)<0 ? " disabled" : "")+">"+ORD[y]+"</button>"
+  ).join("");
+  const counted = through(cut).length;
+  $("#asof-hint").innerHTML = !ys.length
+    ? "Add a course to begin."
+    : cut===top
+      ? "Everything on the transcript counts — "+counted+" course"+(counted===1?"":"s")+
+        ". Pick an earlier year to see where the numbers stood then."
+      : "Computing on "+counted+" course"+(counted===1?"":"s")+" through "+ORD[cut]+
+        " grade. Later rows stay in the list, greyed out.";
+}
+
+/* ── ledger ─────────────────────────────────────────────────────────────── */
+
+const YEARNAME = {9:"Ninth grade", 10:"Tenth grade", 11:"Eleventh grade", 12:"Twelfth grade"};
+
+function options(map, sel, labelKey){
+  return Object.keys(map).map(k =>
+    '<option value="'+k+'"'+(k===sel?" selected":"")+'>'+esc(labelKey?map[k][labelKey]:map[k])+'</option>'
+  ).join("");
+}
+
+function gradeOpts(sel){
+  return GRADES.map(g => '<option'+(g===sel?" selected":"")+">"+g+"</option>").join("");
+}
+/* The S2 box doubles as the term control: a grade, "(year)" when the one
+   mark covers the whole year, or "(none)" when spring is not graded yet. */
+function g2Opts(sel){
+  const v = sel || YEAR_TERM;
+  return '<option value="year"'+(v===YEAR_TERM?" selected":"")+">(year)</option>"+
+         '<option value="none"'+(v===NO_TERM?" selected":"")+">(none)</option>"+
+         GRADES.map(g => '<option value="'+g+'"'+(g===v?" selected":"")+">"+g+"</option>").join("");
+}
+
+function rowHTML(c){
+  return '<div class="row" data-id="'+c.id+'">'+
+    '<input class="nm" type="text" id="n-'+c.id+'" value="'+esc(c.name)+'" placeholder="Course name" aria-label="Course name">'+
+    '<button class="kill" type="button" data-kill="'+c.id+'" aria-label="Remove '+esc(c.name)+'">&times;</button>'+
+    '<div class="sels">'+
+      '<select class="s" id="s-'+c.id+'" aria-label="Subject">'+options(SUBJECTS,c.subject,"label")+'</select>'+
+      '<select class="l" id="l-'+c.id+'" aria-label="Course level">'+options(LEVELS,c.level,"label")+'</select>'+
+      '<select class="g g1" id="g-'+c.id+'" aria-label="First semester grade">'+gradeOpts(c.grade)+'</select>'+
+      '<select class="g g2" id="h-'+c.id+'" aria-label="Second semester grade, or year, or none yet">'+
+        g2Opts(c.g2)+'</select>'+
+      '<select class="y" id="y-'+c.id+'" aria-label="Grade level">'+
+        YEARS.map(y=>'<option value="'+y+'"'+(y===c.year?" selected":"")+'>'+ORD[y]+"</option>").join("")+'</select>'+
+    "</div>"+
+  "</div>";
+}
+
+const LEDGER_HEAD =
+  '<p class="headnote">Grades go in per semester. Leave <b>S2</b> on <b>(year)</b> where the '+
+  'transcript shows one mark for the whole year, or <b>(none)</b> where the second semester '+
+  'has not been graded yet.</p>'+
+  '<div class="ledger-head"><span>Subject</span><span>Level</span>'+
+  '<span class="mid">S1</span><span class="mid">S2</span><span class="mid">Year</span></div>';
+
+function renderLedger(){
+  const cut = asOf();
+  const byYear = {9:[],10:[],11:[],12:[]};
+  state.courses.forEach(c => byYear[c.year].push(c));
+  let html = "";
+  for(const y of YEARS){
+    if(!byYear[y].length) continue;
+    const beyond = y > cut;
+    html += '<div class="yearblock'+(beyond?" beyond":"")+'"><div class="yearbar">'+
+            '<span class="gr">'+YEARNAME[y]+"</span>"+
+            "<span>"+byYear[y].length+" course"+(byYear[y].length===1?"":"s")+"</span>"+
+            (beyond ? '<span class="cut">after the cut-off — not counted</span>'
+                    : (y===10||y===11 ? '<span class="ucwin">inside the UC window</span>' : ""))+
+            "</div>"+byYear[y].map(rowHTML).join("")+"</div>";
+  }
+  html = state.courses.length ? LEDGER_HEAD + html
+    : '<div class="yearblock"><p class="nogpa" style="padding:26px 0">No courses yet. '+
+      'Add one, load a saved file, or reload the example transcript.</p></div>';
+  $("#ledger").innerHTML = html;
+  $("#example-notice").hidden = !state.isExample;
+  const kept = through(cut);
+  $("#ledger-meta").textContent = !state.courses.length ? "empty"
+    : kept.length === state.courses.length
+      ? state.courses.length+" courses · "+totalSemesters(state.courses)+" semester grades"
+      : kept.length+" of "+state.courses.length+" courses counted · "+
+        totalSemesters(kept)+" semester grades";
+}
+
+function find(id){ return state.courses.find(c => c.id===id); }
+function dirty(){ state.isExample = false; $("#example-notice").hidden = true; save(); }
+function redraw(){ renderName(); renderAsOf(); renderLedger(); recompute(); }
+
+$("#ledger").addEventListener("input", e => {
+  const row = e.target.closest(".row"); if(!row) return;
+  const c = find(row.dataset.id); if(!c) return;
+  const t = e.target;
+  if(t.classList.contains("nm")) c.name = t.value;
+  else if(t.classList.contains("s")) c.subject = t.value;
+  else if(t.classList.contains("l")) c.level = t.value;
+  else if(t.classList.contains("g1")) c.grade = t.value;
+  else if(t.classList.contains("g2")) c.g2 = t.value;
+  else if(t.classList.contains("y")){
+    c.year = +t.value;
+    dirty(); redraw();
+    const moved = document.getElementById("y-"+c.id); if(moved) moved.focus();
+    return;
+  }
+  dirty(); recompute();
+});
+
+$("#ledger").addEventListener("click", e => {
+  const id = e.target.dataset && e.target.dataset.kill; if(!id) return;
+  state.courses = state.courses.filter(c => c.id!==id);
+  dirty(); redraw();
+});
+
+$("#asof-seg").addEventListener("click", e => {
+  const y = e.target.dataset && e.target.dataset.year; if(!y) return;
+  state.asOf = +y; save(); redraw();
+});
+
+$("#add").addEventListener("click", () => {
+  const last = state.courses[state.courses.length-1];
+  const c = mkCourse(["", "english", "regular", "A", last ? last.year : 11]);
+  state.courses.push(c);
+  dirty(); redraw();
+  const n = document.getElementById("n-"+c.id); if(n) n.focus();
+});
+$("#load-example").addEventListener("click", () => {
+  state.courses = exampleCourses(); state.name = "Example";
+  state.asOf = null; state.isExample = true; save();
+  $("#student").value = state.name;
+  note(""); redraw();
+});
+$("#clear").addEventListener("click", () => {
+  state.courses = []; state.name = ""; state.asOf = null; state.isExample = false; save();
+  $("#student").value = "";
+  note(""); redraw();
+});
+
+$("#res-ca").addEventListener("click", () => setResident(true));
+$("#res-oos").addEventListener("click", () => setResident(false));
+function setResident(v){
+  state.resident = v;
+  $("#res-ca").setAttribute("aria-pressed", String(v));
+  $("#res-oos").setAttribute("aria-pressed", String(!v));
+  save(); recompute();
+}
+$("#sat").addEventListener("input", e => {
+  const v = parseInt(e.target.value, 10);
+  state.sat = isNaN(v) ? null : v;
+  save(); recompute();
+});
+$("#student").addEventListener("input", e => {
+  state.name = e.target.value;
+  save(); renderName(); stampPrintDate();
+});
+
+/* ── saving and loading a transcript file ───────────────────────────────── */
+
+/* Inside the Claude artifact viewer a page cannot start its own download,
+   so saving goes through the host capability. Served as an ordinary web
+   page — GitHub Pages, or a local file — the browser handles it itself.  */
+const inViewer = !!(window.claude && typeof window.claude.use === "function");
+const downloadsReady = inViewer
+  ? window.claude.use("downloads").catch(() => null)
+  : Promise.resolve(null);
+
+function browserSave(){
+  const blob = new Blob([payloadText()], {type: "application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename();
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function payload(){
+  return {
+    format: "recalculation-desk/v1",
+    saved: new Date().toISOString(),
+    name: studentName(),
+    resident: state.resident,
+    sat: state.sat,
+    asOf: state.asOf,
+    courses: state.courses.map(c => ({name:c.name, subject:c.subject, level:c.level,
+                                      grade:c.grade, s2:c.g2, year:c.year}))
+  };
+}
+const payloadText = () => JSON.stringify(payload(), null, 2);
+
+/* [NAME]s-GPA-[YYYYMMDD].json, on the viewer's own calendar day. Only the
+   characters a filesystem objects to are removed, so accents and non-Latin
+   scripts survive; a blank name gives plain GPA-.                         */
+function filename(){
+  const d = new Date();
+  const pad = n => String(n).padStart(2, "0");
+  const date = "" + d.getFullYear() + pad(d.getMonth()+1) + pad(d.getDate());
+  const who = studentName()
+    .replace(/[\/\\:*?"<>|\u0000-\u001f\u007f]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/^[-_.]+|[-_.]+$/g, "");
+  return (who ? who + "s-GPA-" : "GPA-") + date + ".json";
+}
+
+function note(msg, bad){
+  const n = $("#filenote");
+  n.textContent = msg || "";
+  n.className = "filenote" + (bad ? " bad" : "");
+}
+function showPaste(msg){
+  $("#paste-text").value = payloadText();
+  $("#paste-panel").hidden = false;
+  if(msg) note(msg, true);
+}
+
+$("#save-json").addEventListener("click", async () => {
+  const d = await downloadsReady;
+  if(!d){
+    if(!inViewer){
+      try{ browserSave(); note("Saved " + filename() + "."); }
+      catch(e){ showPaste("That file couldn't be saved — copy the JSON below instead."); }
+      return;
+    }
+    showPaste("Saving a file isn't available in this view — copy the JSON below instead."); return;
+  }
+  try{
+    await d.save({filename: filename(), data: payloadText()});
+    note("Saved " + filename() + ".");
+  }catch(err){
+    const code = err && err.code;
+    if(code === "declined") note("Save cancelled.");
+    else if(code === "rate_limited") note("A save prompt is already open — try again in a moment.", true);
+    else showPaste("That file couldn't be offered here — copy the JSON below instead.");
+  }
+});
+
+/* Printing from inside the viewer's frame needs the host to allow it. The
+   beforeprint event is the only honest signal that it worked.            */
+let printStarted = false;
+window.addEventListener("beforeprint", () => { printStarted = true; });
+
+$("#print-page").addEventListener("click", () => {
+  printStarted = false;
+  stampPrintDate();
+  try{ window.print(); }catch(e){}
+  setTimeout(() => {
+    if(!printStarted)
+      note("Printing is blocked inside this frame. Open the artifact in its own browser tab, "+
+           "then print from there.", true);
+  }, 800);
+});
+
+function stampPrintDate(){
+  const who = studentName();
+  const when = new Date().toLocaleDateString(undefined,
+    {year:"numeric", month:"long", day:"numeric"});
+  $("#printed-on").textContent = (who ? who + " · " : "") + "recalculated " + when;
+}
+
+$("#open-json").addEventListener("click", () => $("#file-input").click());
+$("#file-input").addEventListener("change", e => {
+  const f = e.target.files && e.target.files[0];
+  if(!f) return;
+  const r = new FileReader();
+  r.onload = () => importJSON(String(r.result), f.name);
+  r.onerror = () => note("That file couldn't be read.", true);
+  r.readAsText(f);
+  e.target.value = "";
+});
+
+$("#toggle-paste").addEventListener("click", () => {
+  const panel = $("#paste-panel");
+  if(panel.hidden){ showPaste(""); note(""); } else panel.hidden = true;
+});
+$("#close-paste").addEventListener("click", () => { $("#paste-panel").hidden = true; });
+$("#select-paste").addEventListener("click", () => {
+  const t = $("#paste-text"); t.focus(); t.select();
+});
+$("#import-paste").addEventListener("click", () => importJSON($("#paste-text").value, "pasted JSON"));
+
+function importJSON(text, label){
+  let d;
+  try{ d = JSON.parse(text); }
+  catch(err){ note(label + " isn't valid JSON — " + err.message, true); return; }
+
+  const rows = Array.isArray(d) ? d : (d && d.courses);
+  if(!Array.isArray(rows)){ note("No course list found in " + label + ".", true); return; }
+
+  const clean = []; let skipped = 0;
+  for(const r of rows){
+    const y = r && +r.year;
+    if(!r || !SUBJECTS[r.subject] || !LEVELS[r.level] || PM[r.grade] === undefined || YEARS.indexOf(y) < 0){
+      skipped++; continue;
+    }
+    const raw2 = r.s2 == null ? YEAR_TERM : String(r.s2);
+    const term = (raw2 === YEAR_TERM || raw2 === NO_TERM || PM[raw2] !== undefined) ? raw2 : YEAR_TERM;
+    clean.push(mkCourse([String(r.name == null ? "" : r.name), r.subject, r.level, r.grade, y, term]));
+  }
+  if(!clean.length){ note("No usable courses in " + label + ".", true); return; }
+
+  state.courses = clean;
+  state.isExample = false;
+  if(!Array.isArray(d)){
+    if(typeof d.name === "string") state.name = d.name.slice(0, 40);
+    if(typeof d.resident === "boolean") state.resident = d.resident;
+    if(Number.isFinite(d.sat)) state.sat = d.sat;
+    state.asOf = YEARS.indexOf(+d.asOf) >= 0 ? +d.asOf : null;
+  }
+  save();
+  $("#paste-panel").hidden = true;
+  $("#student").value = state.name || "";
+  $("#sat").value = state.sat == null ? "" : state.sat;
+  setResident(state.resident);
+  redraw();
+  note("Loaded " + clean.length + " course" + (clean.length===1?"":"s") + " from " + label +
+       (skipped ? " — " + skipped + " row" + (skipped===1?"":"s") + " skipped as unreadable" : "") + ".");
+}
+
+/* ── results ────────────────────────────────────────────────────────────── */
+
+const SCALE = 5;                                  // every rail runs 0–5
+const pct = v => Math.max(0, Math.min(100, v/SCALE*100));
+const fmt = (v,d) => v===null||v===undefined ? "—" : v.toFixed(d===undefined?2:d);
+
+function academicIndex(cs, sat){
+  const u = unweighted(cs);
+  if(u.gpa===null || !sat) return null;
+  const cgs = u.gpa/4*80;
+  return {ai: Math.round(cgs + 2*(sat/20)), cgs};
+}
+
+/* One model's value at the close of every year we have grades for, up to
+   the cut-off — the running GPA.                                          */
+function series(m, opts){
+  const cut = asOf(), pts = [];
+  for(const y of yearsPresent()){
+    if(y > cut) break;
+    const cs = through(y);
+    const r = m.kind === "index" ? academicIndex(cs, state.sat) : (cs.length ? m.run(cs, opts) : null);
+    const v = !r ? null : (m.kind === "index" ? r.ai : r.gpa);
+    if(v !== null && v !== undefined) pts.push({year:y, v, r});
+  }
+  return pts;
+}
+
+function sparkSVG(pts, label, fmtV){
+  if(pts.length < 2) return '<div class="spark" aria-hidden="true"></div>';
+  const show = fmtV || (v => fmt(v));
+  const vs = pts.map(p => p.v);
+  const span = Math.max(Math.max(...vs) - Math.min(...vs), 0.15);
+  const mid = (Math.max(...vs) + Math.min(...vs)) / 2;
+  const lo = mid - span/2;
+  const X = i => 5 + i * (70/(pts.length-1));
+  const Y = v => 30 - (v - lo)/span * 24;
+  const d = pts.map((p,i) => (i?"L":"M") + X(i).toFixed(1) + " " + Y(p.v).toFixed(1)).join(" ");
+
+  const marks = pts.map((p,i) => {
+    const x = X(i).toFixed(1), y = Y(p.v).toFixed(1), last = i === pts.length-1;
+    const step = i ? p.v - pts[i-1].v : null;
+    const move = step === null ? ""
+      : Math.abs(step) < 0.005 ? "no change"
+      : (step > 0 ? "+" : "\u2212") + show(Math.abs(step));
+    return '<g class="pt">'+
+      '<circle class="mk '+(last ? "now" : "dot past")+'" cx="'+x+'" cy="'+y+
+        '" r="'+(last ? 4 : 2.2)+'"/>'+
+      '<circle class="hit" cx="'+x+'" cy="'+y+'" r="9" data-v="'+esc(show(p.v))+
+        '" data-when="after '+ORD[p.year]+' grade" data-move="'+esc(move)+'"/>'+
+    "</g>";
+  }).join("");
+
+  const title = label + ": " + pts.map(p => show(p.v) + " after " + ORD[p.year]).join(", ");
+  return '<svg class="spark" viewBox="0 0 80 36" role="img" aria-label="'+esc(title)+'">'+
+         '<path class="ln" d="'+d+'"/>'+marks+"</svg>";
+}
+
+/* One shared tooltip, parked outside the results column so a re-render
+   never takes it away mid-hover.                                        */
+const sparktip = $("#sparktip");
+
+let tipAnchor = null;
+
+/* The tip is fixed-position, so it has to be re-placed whenever the point
+   it belongs to moves — scrolling keeps it attached instead of dropping it. */
+function placeTip(){
+  if(!tipAnchor) return;
+  const r = tipAnchor.getBoundingClientRect();
+  if(!r.width && !r.height){ hideTip(); return; }     // the point is gone
+  const t = sparktip.getBoundingClientRect();
+  const left = Math.max(8, Math.min(window.innerWidth - t.width - 8,
+                                    r.left + r.width/2 - t.width/2));
+  const above = r.top - t.height - 9;
+  sparktip.style.left = left.toFixed(0) + "px";
+  sparktip.style.top = (above < 8 ? r.bottom + 9 : above).toFixed(0) + "px";
+}
+
+function showTip(hit){
+  sparktip.querySelector("b").textContent = hit.dataset.v;
+  sparktip.querySelector("span").innerHTML = esc(hit.dataset.when) +
+    (hit.dataset.move ? ' · <em>' + esc(hit.dataset.move) + "</em>" : "");
+  tipAnchor = hit;
+  sparktip.style.left = "-9999px";
+  sparktip.style.top = "0px";
+  sparktip.hidden = false;
+  placeTip();
+}
+function hideTip(){ tipAnchor = null; sparktip.hidden = true; }
+
+$("#results").addEventListener("pointerover", e => {
+  const hit = e.target.closest && e.target.closest(".hit");
+  if(hit) showTip(hit);
+});
+$("#results").addEventListener("pointerout", e => {
+  if(e.target.closest && e.target.closest(".hit")) hideTip();
+});
+window.addEventListener("scroll", placeTip, {passive:true});
+window.addEventListener("resize", placeTip);
+window.addEventListener("beforeprint", hideTip);
+
+function deltaText(pts){
+  if(pts.length < 2) return "";
+  const d = pts[pts.length-1].v - pts[0].v;
+  const cls = Math.abs(d) < 0.005 ? "" : d > 0 ? "up" : "down";
+  const sign = d > 0 ? "+" : d < 0 ? "−" : "±";
+  return '<span class="delta '+cls+'">'+sign+Math.abs(d).toFixed(2)+" since "+ORD[pts[0].year]+"</span>";
+}
+
+/* A badge only where the formula's own window explains the gap. Every card
+   is a running figure when the cut-off is early — the masthead says so once,
+   so repeating it fourteen times would be noise.                          */
+function provisional(m){
+  const w = WINDOW[m.id] || [9,12], cut = asOf();
+  if(!yearsPresent().length) return "";
+  if(cut < w[0]) return "counts from " + ORD[w[0]] + " grade";
+  const narrow = w[0] > 9 || w[1] < 12;
+  if(narrow && cut < w[1]) return "provisional · window runs to " + ORD[w[1]];
+  return "";
+}
+
+function statLine(r, pts){
+  const bits = ['<span>'+r.sems+" semester grades</span>"];
+  if(r.drops.length) bits.push("<span>"+r.drops.length+" course"+(r.drops.length===1?"":"s")+" dropped</span>");
+  if(r.bonus) bits.push('<span class="b">+'+fmt(r.bonus,r.bonus%1?1:0)+" bonus points</span>");
+  r.flags.forEach(f => bits.push('<span class="capped">'+esc(f)+"</span>"));
+  const d = deltaText(pts);
+  if(d) bits.push(d);
+  return bits.join("");
+}
+
+function cardHTML(m, pts){
+  const last = pts.length ? pts[pts.length-1] : null;
+  const r = last ? last.r : null;
+  const prov = provisional(m);
+  let figure, rail = "", stats = "";
+
+  if(m.kind === "index"){
+    figure = r ? '<div class="figure tnum">'+r.ai+'<span class="of">of 240</span></div>'
+               : '<div class="figure tnum">—<span class="of">needs GPA + SAT</span></div>';
+    if(r){
+      const p = Math.max(0, Math.min(100, (r.ai-60)/180*100));
+      rail = '<div class="card-rail"><div class="fill" style="width:'+p.toFixed(1)+'%"></div>'+
+             '<div class="four" style="left:'+((176-60)/180*100).toFixed(1)+'%"></div></div>';
+      stats = '<div class="stats"><span>converted GPA score '+fmt(r.cgs,1)+" of 80</span>"+
+              '<span class="b">scale 60–240</span>'+deltaText(pts)+"</div>";
+    }
+  } else if(!r){
+    const w = WINDOW[m.id] || [9,12];
+    figure = '<div class="figure tnum">—<span class="of">'+
+             (asOf() < w[0] ? "nothing in range yet" : "no courses count")+"</span></div>";
+  } else {
+    figure = '<div class="figure tnum">'+fmt(r.gpa)+'<span class="of">of '+fmt(r.max,1)+"</span></div>";
+    rail = '<div class="card-rail">'+
+      (m.benchmark ? '<div class="band" style="left:'+pct(m.benchmark[0]).toFixed(1)+
+        '%;width:'+Math.max(0.6, pct(m.benchmark[1])-pct(m.benchmark[0])).toFixed(1)+'%"></div>' : "")+
+      '<div class="fill" style="width:'+pct(r.gpa).toFixed(1)+'%"></div>'+
+      '<div class="four" style="left:'+pct(4).toFixed(1)+'%"></div></div>';
+    stats = '<div class="stats">'+statLine(r, pts)+"</div>";
+  }
+
+  let body = m.rule;
+  if(m.context) body = '<p class="src" style="color:var(--brass)">'+esc(m.context)+"</p>"+body;
+  if(pts.length > 1){
+    body += "<p><strong>Running value</strong></p><div class=\"dropped\">"+
+      pts.map(p => '<span class="chip keep">after '+ORD[p.year]+" · "+fmt(p.v)+"</span>").join("")+"</div>";
+  }
+  if(r && r.drops && r.drops.length){
+    const seen = {};
+    body += "<p style=\"margin-top:10px\"><strong>Dropped from this calculation</strong></p><div class=\"dropped\">"+
+      r.drops.map(d => { const k = d.name+"|"+d.why; if(seen[k]) return ""; seen[k] = 1;
+        return '<span class="chip">'+esc(d.name||"untitled")+" · "+esc(d.why)+"</span>"; }).join("")+"</div>";
+  }
+  if(r && r.keeps && r.keeps.length){
+    body += '<p style="margin-top:10px"><strong>Earned the rigour bonus</strong></p><div class="dropped">'+
+      r.keeps.map(n => '<span class="chip keep">'+esc(n||"untitled")+"</span>").join("")+"</div>";
+  }
+  if(m.src) body += '<p class="src" style="margin-top:11px">Source: '+A(m.src[1], esc(m.src[0]))+"</p>";
+
+  return '<article class="card"><button class="card-top" type="button" aria-expanded="false" '+
+    'aria-controls="b-'+m.id+'"><div><div class="nm">'+esc(m.name)+"</div>"+
+    '<div class="sub">'+esc(m.sub)+"</div>"+
+    (prov ? '<div class="prov">'+esc(prov)+"</div>" : "")+"</div>"+
+    sparkSVG(pts, m.name, m.kind === "index" ? (v => String(v)) : undefined)+
+    figure+rail+stats+"</button>"+
+    '<div class="card-body" id="b-'+m.id+'" hidden>'+body+"</div></article>";
+}
+
+function renderAxis(points){
+  let html = '<div class="axis-line"></div>';
+  for(let v=0; v<=5; v++){
+    const major = v===4;
+    const edge = v===0 ? " edge-l" : v===5 ? " edge-r" : "";
+    html += '<div class="axis-grid'+(major?" major":"")+'" style="left:'+pct(v)+'%"></div>'+
+            '<div class="axis-label'+(major?" major":"")+edge+'" style="left:'+pct(v)+'%">'+v.toFixed(1)+"</div>";
+  }
+  points.forEach(p => {
+    html += '<div class="pin'+(p.gpa>4?" is-brass":"")+'" style="left:'+pct(p.gpa)+'%" title="'+
+            esc(p.name)+" "+fmt(p.gpa)+'"></div>';
+  });
+  if(points.length > 1){
+    const clamp = v => Math.max(9, Math.min(91, v));
+    const lo = points[0], hi = points[points.length-1];
+    html += '<div class="pin-cap" style="left:'+clamp(pct(lo.gpa)).toFixed(1)+'%">'+esc(lo.name)+"</div>"+
+            '<div class="pin-cap lower" style="left:'+clamp(pct(hi.gpa)).toFixed(1)+'%">'+esc(hi.name)+"</div>";
+  }
+  $("#axis").innerHTML = html;
+}
+
+function recompute(){
+  const opts = {resident: state.resident};
+  const points = [], groups = [];
+
+  MODELS.forEach(m => {
+    const pts = series(m, opts);
+    const last = pts.length ? pts[pts.length-1] : null;
+    if(last && m.kind !== "index") points.push({name:m.name.replace(/ GPA$/,""), gpa:last.v});
+
+    let g = groups.find(x => x.name === m.group);
+    if(!g){ g = {name:m.group, items:[]}; groups.push(g); }
+    g.items.push(cardHTML(m, pts));
+  });
+
+  hideTip();
+  $("#results").innerHTML = groups.map(g =>
+    '<section class="group"><h3>'+esc(g.name)+"</h3><div class=\"cards\">"+g.items.join("")+"</div></section>"
+  ).join("");
+
+  points.sort((a,b) => a.gpa-b.gpa);
+  renderAxis(points);
+  $("#spread-count").textContent = points.length;
+  $("#lo").textContent = points.length ? fmt(points[0].gpa) : "—";
+  $("#hi").textContent = points.length ? fmt(points[points.length-1].gpa) : "—";
+
+  const cut = asOf(), ys = yearsPresent();
+  const reading = $("#asof-reading");
+  if(!ys.length) reading.textContent = "";
+  else if(cut === ys[ys.length-1])
+    reading.textContent = "Computed on the whole transcript, through " + ORD[cut] + " grade.";
+  else
+    reading.textContent = "Computed on grades through " + ORD[cut] + " grade only — " +
+      (state.courses.length - through(cut).length) + " later course" +
+      (state.courses.length - through(cut).length === 1 ? "" : "s") + " held back.";
+}
+
+$("#results").addEventListener("click", e => {
+  const top = e.target.closest(".card-top"); if(!top) return;
+  const body = document.getElementById(top.getAttribute("aria-controls"));
+  const open = top.getAttribute("aria-expanded") === "true";
+  top.setAttribute("aria-expanded", String(!open));
+  body.hidden = open;
+});
+
+/* ── boot ───────────────────────────────────────────────────────────────── */
+
+window.addEventListener("beforeprint", stampPrintDate);
+
+$("#student").value = state.name || "";
+$("#sat").value = state.sat == null ? "" : state.sat;
+setResident(state.resident);
+stampPrintDate();
+redraw();
+
+</script>
+
+</body>
+</html>
