@@ -6,9 +6,7 @@
 <meta name="description" content="Enter a high-school transcript once and see what fourteen published admissions and scholarship GPA formulas make of it.">
 <title>ReGPA — The Recalculation Desk</title>
 <style>:root{color-scheme:light dark}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Public+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="fonts/fonts.css">
 <style>
 :root{
   --paper:#F1F2EE; --surface:#FAFBF8; --surface-2:#E8EAE3; --sunk:#E3E6DE;
@@ -63,6 +61,10 @@ header.masthead{border-bottom:1px solid var(--rule);background:var(--surface)}
 h1{font-family:var(--display);font-weight:400;font-size:clamp(34px,5.4vw,52px);line-height:1.02;
   letter-spacing:-.01em}
 .standfirst{color:var(--ink-2);font-size:15px;max-width:56ch;margin-top:10px}
+.privacy{margin:13px 0 0;font-size:13px;color:var(--ink-2);max-width:56ch;
+  padding-left:11px;border-left:2px solid var(--seal)}
+.privacy strong{color:var(--ink);font-weight:600}
+.privacy em{font-style:normal;font-family:var(--mono);font-size:11.5px;color:var(--brass)}
 .settings{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .seg{display:flex;border:1px solid var(--rule);border-radius:7px;overflow:hidden;background:var(--surface-2)}
 .seg button{background:none;border:0;padding:7px 12px;font-size:12.5px;color:var(--ink-2);
@@ -306,7 +308,7 @@ footer li{margin-bottom:4px}
   .wrap{max-width:none;padding-inline:14px}
   a{color:inherit;text-decoration:none}
 
-  .settings,.settings-col,.asof,.ledger-actions,.filebar,.filenote,.paste,.headnote,
+  .settings,.settings-col,.privacy,.asof,.ledger-actions,.filebar,.filenote,.paste,.headnote,
   .screen-only,.standfirst,#example-notice,.row .kill{display:none!important}
   .print-only{display:block;font-family:var(--mono);font-size:9pt;color:var(--ink-3);
     letter-spacing:.04em;margin:8px 0 0}
@@ -355,11 +357,15 @@ footer li{margin-bottom:4px}
 <header class="masthead">
   <div class="wrap">
     <div>
-      <div class="eyebrow">One transcript · fourteen formulas</div>
+      <div class="eyebrow">One transcript · fifteen formulas</div>
       <h1>The Recalculation Desk</h1>
       <p class="standfirst">Admissions offices rarely use the GPA printed on your transcript. They
         rebuild it — dropping courses, stripping your school's weighting, and adding their own.
         Enter a transcript once and see what each published formula makes of it.</p>
+      <p class="privacy"><strong>Nothing you type here leaves your browser.</strong> No account,
+        no server, no analytics, no third-party requests — your transcript is held on this device
+        and nowhere else. <em>Save File</em> keeps a copy on your own computer, and <em>Load
+        File</em> picks it up again whenever you come back.</p>
       <p class="print-only" id="printed-on"></p>
     </div>
     <div class="settings-col">
@@ -479,8 +485,8 @@ footer li{margin-bottom:4px}
           <li>A row holds one or two semester grades. A year grade counts as two equal semesters;
             UC and CSU cap honours points per semester, so a year-long AP earns two of them and a
             course with only an S1 mark earns one.</li>
-          <li>Plus and minus grades are used only in the two baseline rows. Every recalculation
-            here discards them, as their published rules specify.</li>
+          <li>Plus and minus grades are used only in the baseline rows. Every recalculation here
+            discards them, as their published rules specify.</li>
           <li>Set <em>grades in hand</em> to the last year you have marks for. Everything recomputes
             on that slice, and each card carries its running value at every earlier year.</li>
           <li>A formula whose window has not closed is marked <em>provisional</em>. UC's window is
@@ -619,7 +625,17 @@ function unweighted(cs){
   const t=T(); for(const c of cs) add(t,c,flat(pm,0)); return done(t,4);
 }
 
-/* Baseline 2 — a common high-school weighting; every school's differs. */
+/* Baseline 2 — the academic core on a flat scale, no rigour bonus. */
+function coreUnweighted(cs){
+  const t=T();
+  for(const c of cs){
+    if(!core5(c)){ drop(t,c,"not core"); continue; }
+    add(t,c,flat(pm,0));
+  }
+  return done(t,4);
+}
+
+/* Baseline 3 — a common high-school weighting; every school's differs. */
 function schoolWeighted(cs){
   const t=T();
   for(const c of cs){
@@ -789,6 +805,23 @@ const MODELS = [
        "<p>It is here as the floor to measure the rest against — no admissions office publishes it "+
        "as <em>their</em> formula.</p>" },
 
+{ group:"Baselines", id:"core_unweighted", name:"Core unweighted",
+  sub:"Five academic areas · no rigour bonus",
+  run:coreUnweighted,
+  rule:"<p>The academic core on a flat 4.0 scale — English, mathematics, science, social science "+
+       "and foreign language — with nothing added for rigour anywhere. Electives, PE and health "+
+       "drop out; an A in AP Chemistry and an A in regular chemistry are both 4.0.</p>"+
+       "<p>This is the shape most often attributed to selective private colleges: strip the "+
+       "transcript back to academic work, judge those grades on one scale, and weigh how hard the "+
+       "courses were separately in the reading rather than folding it into the number. Of "+
+       "everything on this page it is the closest to how a file is actually read somewhere that "+
+       "publishes no formula — which is why it carries no source link.</p>"+
+       "<p><strong>Emory is the college most often named for this</strong>, along with an internal "+
+       "\"Latting Index\" said to run on an 8-point scale and ignore freshman year. Emory publishes "+
+       "neither, its own admission pages describe holistic review and nothing more, and the "+
+       "descriptions in circulation trace back to a single second-hand sentence. Read this as a "+
+       "useful lens, not as any particular college's arithmetic.</p>" },
+
 { group:"Baselines", id:"school", name:"Typical school weighting",
   sub:"Every course · +1.0 advanced, +0.5 honours",
   run:schoolWeighted,
@@ -954,7 +987,7 @@ const MODELS = [
 /* Which grade years each formula's window covers — what makes a partial
    transcript provisional, or in UC's case not yet a GPA at all.          */
 const WINDOW = {
-  unweighted:[9,12], school:[9,12],
+  unweighted:[9,12], core_unweighted:[9,12], school:[9,12],
   uc_capped:[10,11], uc_uncapped:[10,11], uc_unweighted:[10,11],
   csu:[10,12], uga:[9,12], gatech:[9,12], hope:[9,12],
   uf:[9,12], ucf:[9,12], bf:[9,12], ncaa:[9,12], ai:[9,12]

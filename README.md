@@ -6,17 +6,18 @@ transcript once and see what each published formula makes of it.
 
 **Live:** https://hughe.github.io/regpa/
 
-A single static HTML file. No build step, no dependencies, no server, no analytics.
-Everything you type stays in your browser.
+One static HTML file and its fonts. No build step, no dependencies, no server, no
+analytics, and no third-party requests — everything you type stays in your browser.
 
 ## What it computes
 
-Fourteen figures from the same coursework. Each is implemented from the office's own
+Fifteen figures from the same coursework. Each is implemented from the office's own
 published description, linked on its card in the app.
 
 | Formula | Rule |
 |---|---|
 | Unweighted 4.00 | Every course, plus/minus counted. The floor to measure the rest against. |
+| Core unweighted | Five academic areas on a flat 4.0 scale, no rigor bonus. The shape attributed to many selective privates — no college publishes it, so it carries no source. |
 | Typical school weighting | Every course, +1.0 advanced / +0.5 honors. Shown for contrast — no authority behind it. |
 | [UC](https://admission.universityofcalifornia.edu/admission-requirements/first-year-requirements/gpa-requirement.html) capped weighted | a–g only, 10th–11th only, +1 per honors **semester**, capped at 8 with at most 4 from 10th grade. |
 | UC fully weighted | Same courses, cap lifted. |
@@ -66,7 +67,7 @@ name and the date. About four pages.
 
 Course-count requirements (UF's 16 academic units, Bright Futures' 16 credits, NCAA's
 distribution rule) are not checked — only the GPA arithmetic is. Plus and minus grades are
-used only in the two baseline rows; every recalculation here discards them, as their
+used only in the baseline rows; every recalculation here discards them, as their
 published rules specify.
 
 These formulas change. Check the linked source before relying on a number.
@@ -78,8 +79,8 @@ git clone https://github.com/hughe/regpa
 open regpa/index.html
 ```
 
-That is the whole thing. `index.html` is self-contained apart from three Google Fonts
-faces; offline, it falls back to system fonts and works the same.
+That is the whole thing. `index.html` plus `fonts/` — the three typefaces are served from
+this repo rather than a CDN, so the page calls nothing outside itself and works offline.
 
 ## Publishing
 
