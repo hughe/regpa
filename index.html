@@ -315,7 +315,8 @@ footer li{margin-bottom:4px}
   a{color:inherit;text-decoration:none}
 
   .settings,.settings-col,.privacy,.asof,.ledger-actions,.filebar,.filenote,.paste,.headnote,
-  .screen-only,.standfirst,#example-notice,.row .kill{display:none!important}
+  .screen-only,.standfirst,#example-notice,#shared-notice,
+  .row .kill{display:none!important}
   .print-only{display:block;font-family:var(--mono);font-size:9pt;color:var(--ink-3);
     letter-spacing:.04em;margin:8px 0 0}
   .disclaimer{font-size:8.5pt;max-width:none;margin-top:9px;padding-left:8px;
@@ -374,7 +375,9 @@ footer li{margin-bottom:4px}
       <p class="privacy"><strong>Nothing you type here leaves your browser.</strong> No account,
         no server, no analytics, no third-party requests — your transcript is held on this device
         and nowhere else. <em>Save File</em> keeps a copy on your own computer, and <em>Load
-        File</em> picks it up again whenever you come back.</p>
+        File</em> picks it up again whenever you come back. <em>Share</em> is the one exception: the link
+        carries the transcript inside it, so whoever you send it to has the data. Sending the link
+        is handing over the grades.</p>
       <p class="disclaimer"><strong>This page was vibe coded.</strong> An AI wrote it, a human has
         tested it lightly, and it may or may not do what it claims. Don't rely on it for anything —
         check any number that matters against the source linked on its card.</p>
@@ -399,6 +402,7 @@ footer li{margin-bottom:4px}
       <div class="quickbar">
         <button class="btn" type="button" data-act="save">Save File</button>
         <button class="btn" type="button" data-act="load">Load File</button>
+        <button class="btn" type="button" data-act="share">Share</button>
         <button class="btn" type="button" data-act="print">Print</button>
         <button class="btn quiet" type="button" data-act="clear">Clear all</button>
       </div>
@@ -433,6 +437,11 @@ footer li{margin-bottom:4px}
           The twelfth-grade rows carry first-semester marks only, the way a senior's transcript reads
           when applications go in.</div>
       </div>
+      <div class="notice" id="shared-notice" hidden>
+        <div><strong>Loaded from a shared link.</strong> These are whoever sent it to you — not
+          your own saved transcript. Change anything and it replaces what this browser had before,
+          so save that first if you want to keep it.</div>
+      </div>
       <div class="asof" id="asof-box">
         <span class="asof-label">Grades in hand</span>
         <div class="seg" id="asof-seg" role="group" aria-label="Compute using grades through"></div>
@@ -450,13 +459,14 @@ footer li{margin-bottom:4px}
         <span class="lbl">Transcript file</span>
         <button class="btn" type="button" data-act="save">Save File</button>
         <button class="btn" type="button" data-act="load">Load File</button>
+        <button class="btn" type="button" data-act="share">Share</button>
         <button class="btn" type="button" data-act="print">Print</button>
         <button class="btn quiet" id="toggle-paste">Copy or paste JSON</button>
         <input type="file" id="file-input" accept=".json,application/json" hidden>
       </div>
       <p class="filenote" id="filenote"></p>
       <div class="paste" id="paste-panel" hidden>
-        <p>The full state — name, courses, residency, SAT and cut-off. Copy it somewhere safe, or
+        <p id="paste-intro">The full state — name, courses, residency, SAT and cut-off. Copy it somewhere safe, or
           paste a saved one in and import.</p>
         <textarea id="paste-text" spellcheck="false" aria-label="Transcript JSON"></textarea>
         <div class="acts">
@@ -1123,7 +1133,13 @@ const KEY = "regpa-v1";
 let state = {courses: exampleCourses(), name:"Example", resident:true, sat:1450,
              asOf:null, isExample:true};
 
+/* Held off only while the page boots from a shared link, so opening
+   someone else's transcript does not overwrite your own saved one until
+   you actually change something.                                        */
+let holdSave = false;
+
 function save(){
+  if(holdSave) return;
   try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){}
 }
 function loadSaved(){
@@ -1252,6 +1268,7 @@ function renderLedger(){
       'Add one, load a saved file, or reload the example transcript.</p></div>';
   $("#ledger").innerHTML = html;
   $("#example-notice").hidden = !state.isExample;
+  $("#shared-notice").hidden = !state.fromLink;
   const kept = through(cut);
   $("#ledger-meta").textContent = !state.courses.length ? "empty"
     : kept.length === state.courses.length
@@ -1261,7 +1278,11 @@ function renderLedger(){
 }
 
 function find(id){ return state.courses.find(c => c.id===id); }
-function dirty(){ state.isExample = false; $("#example-notice").hidden = true; save(); }
+function dirty(){
+  state.isExample = false; state.fromLink = false;
+  $("#example-notice").hidden = true; $("#shared-notice").hidden = true;
+  save();
+}
 function redraw(){ renderName(); renderAsOf(); renderLedger(); recompute(); }
 
 $("#ledger").addEventListener("input", e => {
@@ -1312,8 +1333,8 @@ function clearAll(){
   note(""); redraw();
 }
 
-$("#res-ca").addEventListener("click", () => setResident(true));
-$("#res-oos").addEventListener("click", () => setResident(false));
+$("#res-ca").addEventListener("click", () => { setResident(true); dirty(); });
+$("#res-oos").addEventListener("click", () => { setResident(false); dirty(); });
 function setResident(v){
   state.resident = v;
   $("#res-ca").setAttribute("aria-pressed", String(v));
@@ -1323,11 +1344,11 @@ function setResident(v){
 $("#sat").addEventListener("input", e => {
   const v = parseInt(e.target.value, 10);
   state.sat = isNaN(v) ? null : v;
-  save(); recompute();
+  dirty(); recompute();
 });
 $("#student").addEventListener("input", e => {
   state.name = e.target.value;
-  save(); renderName(); stampPrintDate();
+  dirty(); renderName(); stampPrintDate();
 });
 
 /* ── saving and loading a transcript file ───────────────────────────────── */
@@ -1347,6 +1368,95 @@ function browserSave(){
   a.href = url; a.download = filename();
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+/* ── sharing ─────────────────────────────────────────────────────────────
+   The transcript rides in the URL's fragment. Browsers never send a
+   fragment to the server, so a shared link is read only by the person who
+   opens it — but the link itself carries the grades, so it is as sensitive
+   as the saved file. Codes are indexes into fixed lists rather than the
+   JSON key names, which keeps a full four-year transcript near 1 KB.    */
+
+const SUB_CODES = ["english","math","science","social","language","cs","arts","elective","other"];
+const LVL_CODES = ["regular","honors","pre_adv","ap","ib_hl","ib_sl","aice","dual"];
+const G2_YEAR = -1, G2_NONE = -2;
+
+function b64url(str){
+  const bytes = new TextEncoder().encode(str);
+  let bin = "";
+  for(let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+  return btoa(bin).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+}
+function unb64url(str){
+  const bin = atob(str.replace(/-/g,"+").replace(/_/g,"/"));
+  const bytes = new Uint8Array(bin.length);
+  for(let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return new TextDecoder().decode(bytes);
+}
+
+function shareURL(){
+  const rows = state.courses.map(c => [
+    c.name,
+    SUB_CODES.indexOf(c.subject),
+    LVL_CODES.indexOf(c.level),
+    GRADES.indexOf(c.grade),
+    c.g2 === YEAR_TERM ? G2_YEAR : c.g2 === NO_TERM ? G2_NONE : GRADES.indexOf(c.g2),
+    c.year
+  ]);
+  const packed = [1, studentName(), state.resident ? 1 : 0, state.sat, state.asOf, rows];
+  return location.origin + location.pathname + "#d=" + b64url(JSON.stringify(packed));
+}
+
+/* Returns a state patch, or null if there is no readable transcript in it. */
+function readShared(hash){
+  const m = /[#&]d=([A-Za-z0-9\-_]+)/.exec(hash || "");
+  if(!m) return null;
+  let d;
+  try{ d = JSON.parse(unb64url(m[1])); }
+  catch(e){ return null; }
+  if(!Array.isArray(d) || d[0] !== 1 || !Array.isArray(d[5])) return null;
+
+  const courses = [];
+  for(const r of d[5]){
+    if(!Array.isArray(r)) continue;
+    const su = SUB_CODES[r[1]], lv = LVL_CODES[r[2]], g1 = GRADES[r[3]], y = +r[5];
+    if(!su || !lv || !g1 || YEARS.indexOf(y) < 0) continue;
+    const g2 = r[4] === G2_YEAR ? YEAR_TERM
+             : r[4] === G2_NONE ? NO_TERM
+             : (GRADES[r[4]] || YEAR_TERM);
+    courses.push(mkCourse([String(r[0] == null ? "" : r[0]), su, lv, g1, y, g2]));
+  }
+  if(!courses.length) return null;
+  return {courses,
+          name: typeof d[1] === "string" ? d[1].slice(0,40) : "",
+          resident: !!d[2],
+          sat: Number.isFinite(d[3]) ? d[3] : null,
+          asOf: YEARS.indexOf(+d[4]) >= 0 ? +d[4] : null};
+}
+
+async function shareLink(){
+  if(!state.courses.length){ note("Nothing to share yet — add a course first.", true); return; }
+  const url = shareURL();
+  const carries = state.courses.length + " course" + (state.courses.length===1?"":"s") +
+                  ", " + url.length + " characters";
+  let copied = false;
+  try{
+    if(navigator.clipboard && window.isSecureContext){
+      await navigator.clipboard.writeText(url);
+      copied = true;
+    }
+  }catch(e){}
+  if(copied){
+    note("Link copied — " + carries + ". The transcript travels inside the link, so whoever you "+
+         "send it to has the grades.");
+  }else{
+    $("#paste-intro").textContent =
+      "This link carries the whole transcript — " + carries + ". Whoever you send it to has the " +
+      "grades.";
+    $("#paste-text").value = url;
+    $("#paste-panel").hidden = false;
+    note("Couldn't reach the clipboard here — copy the link below.", true);
+  }
 }
 
 function payload(){
@@ -1383,6 +1493,9 @@ function note(msg, bad){
   n.className = "filenote" + (bad ? " bad" : "");
 }
 function showPaste(msg){
+  $("#paste-intro").textContent =
+    "The full state — name, courses, residency, SAT and cut-off. Copy it somewhere safe, or " +
+    "paste a saved one — or a shared link — in and import.";
   $("#paste-text").value = payloadText();
   $("#paste-panel").hidden = false;
   if(msg) note(msg, true);
@@ -1436,7 +1549,7 @@ function stampPrintDate(){
    foot of the ledger — so the buttons carry the action and one listener
    serves both.                                                          */
 const ACTIONS = {save: saveFile, load: () => $("#file-input").click(),
-                print: printPage, clear: clearAll};
+                share: shareLink, print: printPage, clear: clearAll};
 document.addEventListener("click", e => {
   const b = e.target.closest && e.target.closest("[data-act]");
   if(b && ACTIONS[b.dataset.act]) ACTIONS[b.dataset.act]();
@@ -1462,6 +1575,19 @@ $("#select-paste").addEventListener("click", () => {
 $("#import-paste").addEventListener("click", () => importJSON($("#paste-text").value, "pasted JSON"));
 
 function importJSON(text, label){
+  const link = readShared(String(text).trim());
+  if(link){
+    Object.assign(state, link);
+    state.isExample = false; state.fromLink = false;
+    save();
+    $("#paste-panel").hidden = true;
+    $("#student").value = state.name || "";
+    $("#sat").value = state.sat == null ? "" : state.sat;
+    setResident(state.resident);
+    redraw();
+    note("Loaded " + link.courses.length + " courses from that shared link.");
+    return;
+  }
   let d;
   try{ d = JSON.parse(text); }
   catch(err){ note(label + " isn't valid JSON — " + err.message, true); return; }
@@ -1769,11 +1895,40 @@ $("#results").addEventListener("click", e => {
 
 window.addEventListener("beforeprint", stampPrintDate);
 
+/* A transcript in the link wins over whatever this browser had saved.
+   Pasting a link into an already-open tab only changes the fragment, which
+   does not reload the page, so that case is handled too.                */
+function adoptLink(patch){
+  Object.assign(state, patch);
+  state.isExample = false; state.fromLink = true;
+  $("#student").value = state.name || "";
+  $("#sat").value = state.sat == null ? "" : state.sat;
+  setResident(state.resident);
+  redraw();
+  note("");
+}
+
+window.addEventListener("hashchange", () => {
+  const patch = readShared(location.hash);
+  if(!patch) return;
+  holdSave = true;
+  adoptLink(patch);
+  holdSave = false;
+});
+
+const fromLink = readShared(location.hash);
+if(fromLink){
+  Object.assign(state, fromLink);
+  state.isExample = false; state.fromLink = true;
+  holdSave = true;
+}
+
 $("#student").value = state.name || "";
 $("#sat").value = state.sat == null ? "" : state.sat;
 setResident(state.resident);
 stampPrintDate();
 redraw();
+holdSave = false;
 
 </script>
 

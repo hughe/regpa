@@ -7,7 +7,8 @@ Enter a transcript once and see what each published formula makes of it.
 **Live:** https://hughe.github.io/regpa/
 
 One static HTML file and its fonts. No build step, no dependencies, no server, no
-analytics, and no third-party requests — everything you type stays in your browser.
+analytics, and no third-party requests — everything you type stays in your browser, unless
+you choose to share a link, which carries the transcript inside it.
 
 ## A warning
 
@@ -63,6 +64,12 @@ not closed is flagged *provisional* — UC's window is 10th–11th, so a GPA com
 — as `[Name]s-GPA-[YYYYMMDD].json`, and reads it back. Nothing is uploaded anywhere; the
 file lands in your downloads folder and stays on your machine. Use this rather than
 keeping a real transcript in the page source.
+
+**Share.** Packs the whole state into a link and copies it to your clipboard. The data
+rides in the URL's `#fragment`, which browsers never send to a server — so the link is
+read only by the person who opens it. But it *is* the transcript: whoever you send the
+link to has the grades. Opening a shared link shows a banner and leaves your own saved
+transcript alone until you change something.
 
 **Print.** A print stylesheet turns the page into a one-column document: course rows
 collapse to one line, controls flatten to the values they hold, and a dateline carries the
