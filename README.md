@@ -52,7 +52,8 @@ anywhere from **3.58 to 4.42** depending on who is holding it.
 **Enter the transcript.** One row per course: subject, level, grades, and which year of
 high school it belongs to. Grades go in per semester — leave **S2** on `(year)` where the
 transcript shows one mark for the whole year, or `(none)` where the second semester has
-not been graded yet.
+not been graded yet. Each row also has a **School** field: type a school once and later rows
+offer it as you type, and a new course starts with the school of the row above.
 
 **Grades in hand.** Set the cut-off to the last year you have marks for. Everything
 recomputes on that slice, and each card shows its running value at every earlier year;
@@ -60,8 +61,8 @@ hover a point on the sparkline for the figure and the change. A formula whose wi
 not closed is flagged *provisional* — UC's window is 10th–11th, so a GPA computed after
 9th grade is not a UC GPA at all, and the card says so instead of showing a number.
 
-**Save File / Load File.** Writes the whole state — name, courses, residency, SAT, cut-off
-— as `[Name]s-GPA-[YYYYMMDD].json`, and reads it back. Nothing is uploaded anywhere; the
+**Save File / Load File.** Writes the whole state — name, courses (with each one's school),
+residency, SAT, cut-off — as `[Name]s-GPA-[YYYYMMDD].json`, and reads it back. Nothing is uploaded anywhere; the
 file lands in your downloads folder and stays on your machine. Use this rather than
 keeping a real transcript in the page source.
 

@@ -133,21 +133,26 @@ main .wrap{padding-block:0 56px}
   border-bottom:1px solid var(--rule);padding-bottom:6px;margin-bottom:4px}
 .yearbar .gr{color:var(--ink)}
 .yearbar .ucwin{color:var(--seal);letter-spacing:.06em;text-transform:none;font-size:10.5px}
-.row{display:grid;grid-template-columns:minmax(0,1fr) 28px;
-  grid-template-areas:"name kill" "sel sel";gap:3px 6px;padding:7px 0;
+.row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.62fr) 28px;
+  grid-template-areas:"name school kill" "sel sel sel";gap:3px 6px;padding:7px 0;
   border-bottom:1px solid var(--rule-soft)}
 .row:last-child{border-bottom:0}
 .row .nm{grid-area:name}
+.row .sc{grid-area:school}
 .row .kill{grid-area:kill;justify-self:end}
 .row .sels{grid-area:sel;display:grid;gap:5px;
   grid-template-columns:minmax(0,1.25fr) minmax(0,1.15fr) 54px 66px 52px}
 @media (max-width:470px){
+  .row{grid-template-columns:minmax(0,1fr) 28px;
+    grid-template-areas:"name kill" "school school" "sel sel"}
   .row .sels{grid-template-columns:minmax(0,1.2fr) minmax(0,1.1fr) 48px 60px 46px;gap:4px}
 }
 .row input[type="text"],.row select{width:100%;background:transparent;border:1px solid transparent;
   border-radius:5px;padding:5px 6px;color:var(--ink);font-family:var(--body);font-size:13.5px;
   min-width:0}
 .row input[type="text"]{font-weight:500}
+.row input.sc{font-weight:400;font-size:12.5px;color:var(--ink-2)}
+.row input.sc::placeholder{color:var(--ink-3)}
 .row select{font-family:var(--mono);font-size:11.5px;color:var(--ink-2);
   appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--ink-3) 50%),
     linear-gradient(135deg,var(--ink-3) 50%,transparent 50%);
@@ -337,12 +342,15 @@ footer li{margin-bottom:4px}
   .colhead h2{font-size:15pt}
 
   /* a course back on one line: name at the left, its fields at the right */
-  .row{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"name sel";
+  .row{grid-template-columns:minmax(0,1fr) minmax(0,.55fr) auto;
+    grid-template-areas:"name school sel";
     gap:0 10px;padding:2.5px 0;align-items:center;break-inside:avoid}
   .row .sels{grid-template-columns:88px 80px 38px 60px 42px;gap:4px}
   .row input[type="text"],.row select{border-color:transparent;background:none;
     padding:1px 2px;font-size:9.5pt;color:var(--ink)}
   .row select{background-image:none;padding-right:2px}
+  .row input.sc{font-size:8.5pt;color:var(--ink-2)}
+  .row input.sc::placeholder{color:transparent}
   .row select.g{text-align:left}
   .ledger-head{width:324px;margin-left:auto;margin-top:8px;gap:4px;
     grid-template-columns:88px 80px 38px 60px 42px;font-size:8pt}
@@ -449,6 +457,7 @@ footer li{margin-bottom:4px}
       </div>
 
       <div id="ledger"></div>
+      <datalist id="school-list"></datalist>
       <div class="ledger-actions">
         <button class="btn primary" id="add">+ Add course</button>
         <button class="btn" id="load-example">Reload example</button>
@@ -626,7 +635,8 @@ const YEAR_TERM = "year", NO_TERM = "none";
 
 let uid = 0;
 const mkCourse = r => ({id:"c"+(++uid), name:r[0], subject:r[1], level:r[2],
-                        grade:r[3], year:r[4], g2: r[5] || YEAR_TERM});
+                        grade:r[3], year:r[4], g2: r[5] || YEAR_TERM,
+                        school: r[6] || ""});
 const exampleCourses = () => EXAMPLE.map(mkCourse);
 
 /* ── tallies ────────────────────────────────────────────────────────────
@@ -1228,6 +1238,8 @@ function g2Opts(sel){
 function rowHTML(c){
   return '<div class="row" data-id="'+c.id+'">'+
     '<input class="nm" type="text" id="n-'+c.id+'" value="'+esc(c.name)+'" placeholder="Course name" aria-label="Course name">'+
+    '<input class="sc" type="text" id="o-'+c.id+'" value="'+esc(c.school||"")+'" list="school-list" '+
+      'maxlength="80" placeholder="School" aria-label="School" autocomplete="off" spellcheck="false">'+
     '<button class="kill" type="button" data-kill="'+c.id+'" aria-label="Remove '+esc(c.name)+'">&times;</button>'+
     '<div class="sels">'+
       '<select class="s" id="s-'+c.id+'" aria-label="Subject">'+options(SUBJECTS,c.subject,"label")+'</select>'+
@@ -1244,7 +1256,8 @@ function rowHTML(c){
 const LEDGER_HEAD =
   '<p class="headnote">Grades go in per semester. Leave <b>S2</b> on <b>(year)</b> where the '+
   'transcript shows one mark for the whole year, or <b>(none)</b> where the second semester '+
-  'has not been graded yet.</p>'+
+  'has not been graded yet. Type a <b>school</b> once and later rows offer it as you type; '+
+  'a new course starts with the school of the one above.</p>'+
   '<div class="ledger-head"><span>Subject</span><span>Level</span>'+
   '<span class="mid">S1</span><span class="mid">S2</span><span class="mid">Year</span></div>';
 
@@ -1275,6 +1288,21 @@ function renderLedger(){
       ? state.courses.length+" courses · "+totalSemesters(state.courses)+" semester grades"
       : kept.length+" of "+state.courses.length+" courses counted · "+
         totalSemesters(kept)+" semester grades";
+  renderSchools();
+}
+
+/* Distinct school names on the transcript, first spelling wins, compared
+   without case — the suggestion list, and the table a shared link uses.  */
+function schoolNames(){
+  const seen = new Map();
+  for(const c of state.courses){
+    const s = (c.school || "").trim();
+    if(s && !seen.has(s.toLowerCase())) seen.set(s.toLowerCase(), s);
+  }
+  return [...seen.values()];
+}
+function renderSchools(){
+  $("#school-list").innerHTML = schoolNames().map(s => '<option value="'+esc(s)+'"></option>').join("");
 }
 
 function find(id){ return state.courses.find(c => c.id===id); }
@@ -1290,6 +1318,7 @@ $("#ledger").addEventListener("input", e => {
   const c = find(row.dataset.id); if(!c) return;
   const t = e.target;
   if(t.classList.contains("nm")) c.name = t.value;
+  else if(t.classList.contains("sc")) c.school = t.value;
   else if(t.classList.contains("s")) c.subject = t.value;
   else if(t.classList.contains("l")) c.level = t.value;
   else if(t.classList.contains("g1")) c.grade = t.value;
@@ -1301,6 +1330,13 @@ $("#ledger").addEventListener("input", e => {
     return;
   }
   dirty(); recompute();
+});
+
+$("#ledger").addEventListener("change", e => {
+  const t = e.target; if(!t.classList.contains("sc")) return;
+  const row = t.closest(".row"), c = row && find(row.dataset.id); if(!c) return;
+  c.school = t.value.trim(); t.value = c.school;
+  save(); renderSchools();
 });
 
 $("#ledger").addEventListener("click", e => {
@@ -1316,7 +1352,8 @@ $("#asof-seg").addEventListener("click", e => {
 
 $("#add").addEventListener("click", () => {
   const last = state.courses[state.courses.length-1];
-  const c = mkCourse(["", "english", "regular", "A", last ? last.year : 11]);
+  const c = mkCourse(["", "english", "regular", "A", last ? last.year : 11,
+                      undefined, last ? last.school : ""]);
   state.courses.push(c);
   dirty(); redraw();
   const n = document.getElementById("n-"+c.id); if(n) n.focus();
@@ -1395,15 +1432,19 @@ function unb64url(str){
 }
 
 function shareURL(){
+  const schools = schoolNames();
+  const schoolIx = new Map(schools.map((s,i) => [s.toLowerCase(), i]));
   const rows = state.courses.map(c => [
     c.name,
     SUB_CODES.indexOf(c.subject),
     LVL_CODES.indexOf(c.level),
     GRADES.indexOf(c.grade),
     c.g2 === YEAR_TERM ? G2_YEAR : c.g2 === NO_TERM ? G2_NONE : GRADES.indexOf(c.g2),
-    c.year
+    c.year,
+    schoolIx.has((c.school || "").trim().toLowerCase())
+      ? schoolIx.get((c.school || "").trim().toLowerCase()) : -1
   ]);
-  const packed = [1, studentName(), state.resident ? 1 : 0, state.sat, state.asOf, rows];
+  const packed = [1, studentName(), state.resident ? 1 : 0, state.sat, state.asOf, rows, schools];
   return location.origin + location.pathname + "#d=" + b64url(JSON.stringify(packed));
 }
 
@@ -1417,6 +1458,7 @@ function readShared(hash){
   if(!Array.isArray(d) || d[0] !== 1 || !Array.isArray(d[5])) return null;
 
   const courses = [];
+  const schools = Array.isArray(d[6]) ? d[6] : [];
   for(const r of d[5]){
     if(!Array.isArray(r)) continue;
     const su = SUB_CODES[r[1]], lv = LVL_CODES[r[2]], g1 = GRADES[r[3]], y = +r[5];
@@ -1424,7 +1466,8 @@ function readShared(hash){
     const g2 = r[4] === G2_YEAR ? YEAR_TERM
              : r[4] === G2_NONE ? NO_TERM
              : (GRADES[r[4]] || YEAR_TERM);
-    courses.push(mkCourse([String(r[0] == null ? "" : r[0]), su, lv, g1, y, g2]));
+    const sc = typeof schools[r[6]] === "string" ? schools[r[6]].slice(0,80) : "";
+    courses.push(mkCourse([String(r[0] == null ? "" : r[0]), su, lv, g1, y, g2, sc]));
   }
   if(!courses.length) return null;
   return {courses,
@@ -1468,7 +1511,8 @@ function payload(){
     sat: state.sat,
     asOf: state.asOf,
     courses: state.courses.map(c => ({name:c.name, subject:c.subject, level:c.level,
-                                      grade:c.grade, s2:c.g2, year:c.year}))
+                                      grade:c.grade, s2:c.g2, year:c.year,
+                                      school:(c.school || "").trim()}))
   };
 }
 const payloadText = () => JSON.stringify(payload(), null, 2);
@@ -1603,7 +1647,8 @@ function importJSON(text, label){
     }
     const raw2 = r.s2 == null ? YEAR_TERM : String(r.s2);
     const term = (raw2 === YEAR_TERM || raw2 === NO_TERM || PM[raw2] !== undefined) ? raw2 : YEAR_TERM;
-    clean.push(mkCourse([String(r.name == null ? "" : r.name), r.subject, r.level, r.grade, y, term]));
+    const sc = r.school == null ? "" : String(r.school).trim().slice(0, 80);
+    clean.push(mkCourse([String(r.name == null ? "" : r.name), r.subject, r.level, r.grade, y, term, sc]));
   }
   if(!clean.length){ note("No usable courses in " + label + ".", true); return; }
 
